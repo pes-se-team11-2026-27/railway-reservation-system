@@ -1,0 +1,37 @@
+@startuml UC04_Cancel_a_Ticket
+
+title Sequence Diagram: UC-04 Cancel a Ticket
+
+actor Passenger
+participant PassengerWeb
+participant BookingService
+participant RefundService
+participant InventorySvc
+participant AllocationEngine
+participant NotifAdapter
+
+Passenger -> PassengerWeb : 1. requestCancel(PNR)
+PassengerWeb -> BookingService : 2. cancelBooking(PNR)
+
+alt past cutoff
+    BookingService --> PassengerWeb : refuse with cutoff time
+else within cutoff
+    BookingService -> RefundService : 3. computeRefund(PNR, currentTime)
+    RefundService --> BookingService : refund amount from slab table
+
+    BookingService -> InventorySvc : 4. releaseBerth(PNR)
+    InventorySvc --> BookingService : berth freed
+
+    BookingService -> AllocationEngine : 5. promoteWaitlist(trainId, date, classId)
+    AllocationEngine --> BookingService : promoted: 1 RAC up, 1 waitlist to RAC
+
+    BookingService -> RefundService : 6. initiateRefund(txRef, amount)
+    RefundService --> BookingService : RefundResult(refundRef, INITIATED)
+
+    BookingService -> NotifAdapter : 7. sendCancelConfirm(PNR, amount)
+    BookingService -> NotifAdapter : 8. sendPromotionNotify(promoted passengers)
+
+    BookingService --> PassengerWeb : refund reference + amount
+end
+
+@enduml

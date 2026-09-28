@@ -1,0 +1,47 @@
+@startuml UC03_Book_a_Ticket
+
+title Sequence Diagram: UC-03 Book a Ticket
+
+actor Passenger
+participant PassengerWeb
+participant BookingService
+participant InventorySvc
+participant FareEngine
+participant PaymentAdapter
+participant Gateway
+participant NotifAdapter
+
+Passenger -> PassengerWeb : 1. selectTrain(train, class, quota)
+PassengerWeb -> BookingService : 2. initiateBooking()
+BookingService -> InventorySvc : 3. holdBerths(trainId, date, class, quota, count)
+InventorySvc --> BookingService : holdId, berths, expiresAt
+BookingService -> FareEngine : 4. computeFare(class, distance, count)
+FareEngine --> BookingService : fare breakup
+BookingService --> PassengerWeb : holdId + fare + 10 min countdown
+
+Passenger -> PassengerWeb : 5. confirm()
+PassengerWeb -> BookingService : 6. confirmAndPay(holdId)
+BookingService -> PaymentAdapter : 7. initiatePayment(holdId, amount)
+PaymentAdapter -> Gateway : 8. redirect to hosted page
+Gateway -> PaymentAdapter : 9. signed callback(txRef, status)
+
+alt payment declined
+    PaymentAdapter --> BookingService : CallbackResult(txRef, DECLINED)
+    BookingService -> InventorySvc : releaseHold(holdId)
+    BookingService --> PassengerWeb : show reason, offer retry
+else payment successful
+    PaymentAdapter --> BookingService : CallbackResult(txRef, SUCCESS)
+    BookingService -> InventorySvc : 10. confirmAllocation(holdId)
+
+    alt hold expired
+        InventorySvc --> BookingService : HoldExpiredException
+        BookingService -> PaymentAdapter : autoRefund(txRef)
+        BookingService -> NotifAdapter : notify passenger with refund ref
+    else allocation successful
+        InventorySvc --> BookingService : AllocationResult(pnr, CONFIRMED)
+        BookingService -> NotifAdapter : 11. sendTicket(pnr, sms, email)
+        BookingService --> PassengerWeb : PNR + coach + berth
+    end
+end
+
+@enduml

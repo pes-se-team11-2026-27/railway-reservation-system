@@ -1,0 +1,98 @@
+<mxfile>
+  <diagram name="UC-03 Book a Ticket" id="seq-book">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <!-- Title -->
+        <mxCell id="t1" value="&lt;b&gt;Sequence Diagram: UC-03 Book a Ticket&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="400" y="10" width="400" height="30" as="geometry"/>
+        </mxCell>
+        <!-- Participants -->
+        <mxCell id="p1" value="Passenger" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;participant=umlActor;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="80" height="850" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2" value="PassengerWeb" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="180" y="60" width="100" height="850" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3" value="BookingService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="340" y="60" width="110" height="850" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4" value="InventorySvc" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="500" y="60" width="100" height="850" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5" value="FareEngine" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="650" y="60" width="90" height="850" as="geometry"/>
+        </mxCell>
+        <mxCell id="p6" value="PaymentAdapter" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="790" y="60" width="110" height="850" as="geometry"/>
+        </mxCell>
+        <mxCell id="p7" value="Gateway" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="950" y="60" width="80" height="850" as="geometry"/>
+        </mxCell>
+        <mxCell id="p8" value="NotifAdapter" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="1090" y="60" width="90" height="850" as="geometry"/>
+        </mxCell>
+        <!-- Messages -->
+        <mxCell id="m1" value="1. selectTrain(train, class, quota)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p1" target="p2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="130"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m2" value="2. initiateBooking()" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p2" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="170"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m3" value="3. holdBerths(trainId, date, class, quota, count)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p4">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="210"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m4" value="holdId, berths, expiresAt" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p4" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="250"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m5" value="4. computeFare(class, distance, count)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p5">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="290"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m6" value="fare breakup" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p5" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="330"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m7" value="holdId + fare + 10 min countdown" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p3" target="p2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="370"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m8" value="5. confirm()" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p1" target="p2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="420"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m9" value="6. confirmAndPay(holdId)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p2" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="460"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m10" value="7. initiatePayment(holdId, amount)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p6">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="500"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m11" value="8. redirect to hosted page" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p6" target="p7">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="540"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m12" value="9. signed callback(txRef, status)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p7" target="p6">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="580"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m13" value="CallbackResult(txRef, SUCCESS)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p6" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="620"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m14" value="10. confirmAllocation(holdId)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p4">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="660"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m15" value="AllocationResult(pnr, CONFIRMED)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p4" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="700"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m16" value="11. sendTicket(pnr, sms, email)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p8">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="740"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m17" value="PNR + coach + berth" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p3" target="p2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="780"/></mxGeometry>
+        </mxCell>
+        <!-- Alt fragments (draw as rectangles with labels) -->
+        <mxCell id="alt1" value="alt [declined]: releaseHold(), show reason, retry" style="shape=umlFrame;whiteSpace=wrap;fontSize=10;strokeColor=#CC0000;fontColor=#CC0000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="595" width="700" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="alt2" value="alt [hold expired]: autoRefund(txRef), notify passenger" style="shape=umlFrame;whiteSpace=wrap;fontSize=10;strokeColor=#CC0000;fontColor=#CC0000;" vertex="1" parent="1">
+          <mxGeometry x="330" y="715" width="520" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

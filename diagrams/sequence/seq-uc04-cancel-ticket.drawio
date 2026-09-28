@@ -1,0 +1,80 @@
+<mxfile>
+  <diagram name="UC-04 Cancel a Ticket" id="seq-cancel">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="800">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <!-- Title -->
+        <mxCell id="t1" value="&lt;b&gt;Sequence Diagram: UC-04 Cancel a Ticket&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry x="350" y="10" width="400" height="30" as="geometry"/>
+        </mxCell>
+        <!-- Participants -->
+        <mxCell id="p1" value="Passenger" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;participant=umlActor;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="80" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="p2" value="PassengerWeb" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="180" y="60" width="100" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="p3" value="BookingService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="340" y="60" width="110" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="p4" value="RefundService" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="510" y="60" width="100" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="p5" value="InventorySvc" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="670" y="60" width="100" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="p6" value="AllocationEngine" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="830" y="60" width="110" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="p7" value="NotifAdapter" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;container=0;fontSize=11;size=50;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="60" width="90" height="700" as="geometry"/>
+        </mxCell>
+        <!-- Messages -->
+        <mxCell id="m1" value="1. requestCancel(PNR)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p1" target="p2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="130"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m2" value="2. cancelBooking(PNR)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p2" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="170"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m3" value="3. computeRefund(PNR, currentTime)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p4">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="220"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m4" value="refund amount from slab table" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p4" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="260"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m5" value="4. releaseBerth(PNR)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p5">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="310"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m6" value="berth freed" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p5" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="350"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m7" value="5. promoteWaitlist(trainId, date, classId)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p6">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="400"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m8" value="promoted: 1 RAC up, 1 waitlist to RAC" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p6" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="440"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m9" value="6. initiateRefund(txRef, amount)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p4">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="490"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m10" value="RefundResult(refundRef, INITIATED)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p4" target="p3">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="530"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m11" value="7. sendCancelConfirm(PNR, amount)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p7">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="580"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m12" value="8. sendPromotionNotify(promoted passengers)" style="html=1;verticalAlign=bottom;endArrow=block;" edge="1" parent="1" source="p3" target="p7">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="620"/></mxGeometry>
+        </mxCell>
+        <mxCell id="m13" value="refund reference + amount" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;" edge="1" parent="1" source="p3" target="p2">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset" x="0" y="660"/></mxGeometry>
+        </mxCell>
+        <!-- Alt fragment -->
+        <mxCell id="alt1" value="alt [past cutoff]: refuse with cutoff time" style="shape=umlFrame;whiteSpace=wrap;fontSize=10;strokeColor=#CC0000;fontColor=#CC0000;" vertex="1" parent="1">
+          <mxGeometry x="170" y="180" width="240" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
