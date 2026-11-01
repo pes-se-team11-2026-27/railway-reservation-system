@@ -13,27 +13,41 @@
   <form class="panel" method="get" action="/fare" novalidate>
     <div class="grid-2">
       <div class="field">
-        <label for="train">Train number</label>
-        <input id="train" type="text" name="train" value="<%= q.train %>" inputmode="numeric" maxlength="5"
-               autocomplete="off" spellcheck="false" aria-describedby="train-hint" required>
-        <p class="hint" id="train-hint">For example 12608.</p>
+        <label for="train" id="train-label">Train</label>
+        <select id="train" name="train" data-combobox>
+          <% trains.forEach(function (t) { %>
+            <option value="<%= t.number %>" <%= q.train === t.number ? 'selected' : '' %>><%= t.name %> (<%= t.number %>)</option>
+          <% }) %>
+        </select>
       </div>
       <div class="field">
         <label for="passengers">Passengers</label>
         <input id="passengers" type="number" name="passengers" value="<%= q.passengers %>" min="1" max="6" inputmode="numeric" aria-describedby="passengers-hint">
         <p class="hint" id="passengers-hint">1 to 6.</p>
       </div>
+    </div>
+    <div class="route-pair" style="margin-top: 1rem">
       <div class="field">
-        <label for="from">From station code</label>
-        <input id="from" type="text" name="from" value="<%= q.from %>" maxlength="5" autocapitalize="characters"
-               autocomplete="off" spellcheck="false" aria-describedby="from-hint" required>
-        <p class="hint" id="from-hint">For example SBC.</p>
+        <label for="from" id="from-label">From</label>
+        <select id="from" name="from" data-combobox>
+          <% stations.forEach(function (s) { %>
+            <option value="<%= s.code %>" <%= (q.from || 'SBC').toUpperCase() === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
+          <% }) %>
+        </select>
       </div>
+      <button class="swap" type="button" data-swap hidden title="Swap From and To">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+          <path d="M2.5 6h12m0 0-3-3m3 3-3 3M15.5 12h-12m0 0 3-3m-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="vh">Swap From and To stations</span>
+      </button>
       <div class="field">
-        <label for="to">To station code</label>
-        <input id="to" type="text" name="to" value="<%= q.to %>" maxlength="5" autocapitalize="characters"
-               autocomplete="off" spellcheck="false" aria-describedby="to-hint" required>
-        <p class="hint" id="to-hint">For example MAS.</p>
+        <label for="to" id="to-label">To</label>
+        <select id="to" name="to" data-combobox>
+          <% stations.forEach(function (s) { %>
+            <option value="<%= s.code %>" <%= (q.to || 'MAS').toUpperCase() === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
+          <% }) %>
+        </select>
       </div>
     </div>
     <fieldset style="margin-top: 1rem">

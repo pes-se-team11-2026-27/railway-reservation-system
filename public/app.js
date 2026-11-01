@@ -30,33 +30,6 @@
     });
   });
 
-  // Swap From and To on the search form.
-  var from = document.getElementById('from');
-  var to = document.getElementById('to');
-  var slot = document.querySelector('[data-swap-slot]');
-  if (from && to && slot) {
-    var button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'swap';
-    button.innerHTML =
-      '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">' +
-      '<path d="M4 2v11M4 13l-2.5-2.5M4 13l2.5-2.5M12 14V3M12 3l-2.5 2.5M12 3l2.5 2.5" stroke="currentColor" ' +
-      'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-      '<span>Swap</span><span class="vh"> From and To stations</span>';
-    var status = document.createElement('span');
-    status.className = 'vh';
-    status.setAttribute('role', 'status');
-    button.addEventListener('click', function () {
-      var a = from.value;
-      from.value = to.value;
-      to.value = a;
-      button.setAttribute('data-turned', button.getAttribute('data-turned') === 'true' ? 'false' : 'true');
-      status.textContent = 'From ' + from.options[from.selectedIndex].text + ', to ' + to.options[to.selectedIndex].text;
-    });
-    slot.appendChild(button);
-    slot.appendChild(status);
-  }
-
   // Hold countdown: text and a bar, announced once when it lapses, not every second.
   var timer = document.querySelector('[data-hold-expires]');
   if (timer) {
