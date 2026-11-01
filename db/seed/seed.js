@@ -59,6 +59,13 @@ async function seed(client) {
         WHERE substr($2, extract(isodow FROM d)::int, 1) = '1'`, [trainId, t.runs_on]);
   }
 
+  // One inventory row per berth per run, all free.
+  await client.query(
+    `INSERT INTO inventory (run_id, berth_id)
+     SELECT r.id, b.id FROM train_runs r
+       JOIN coaches c ON c.train_id = r.train_id
+       JOIN berths b ON b.coach_id = c.id`);
+
   const settings = [
     ['hold_minutes', '10'],
     ['otp_minutes', '10'],
