@@ -37,14 +37,20 @@
         <p>No trains run between these stations on this date.</p>
       <% } else { %>
         <table>
-          <tr><th>Train</th><th>Departs</th><th>Arrives</th><th>Distance</th><th>Classes</th></tr>
+          <tr><th>Train</th><th>Departs</th><th>Arrives</th><th>Distance</th><th>Availability (General)</th><th></th></tr>
           <% trains.forEach(function (t) { %>
             <tr>
               <td><%= t.number %> <%= t.name %></td>
               <td><%= t.departs %></td>
               <td><%= t.arrives %><%= t.arrivalDay ? ' (+' + t.arrivalDay + ' day)' : '' %></td>
               <td><%= t.distanceKm %> km</td>
-              <td><%= t.classes.join(', ') %></td>
+              <td>
+                <% t.classes.forEach(function (c) { var a = t.availability[c]; %>
+                  <div><%= c %>: <%= a.confirmedAvailable > 0 ? a.confirmedAvailable + ' available'
+                    : (a.racAvailable > 0 ? 'RAC ' + a.racAvailable : 'WL ' + (a.waitlist + 1)) %></div>
+                <% }) %>
+              </td>
+              <td><a href="/book?runId=<%= t.runId %>">Book</a></td>
             </tr>
           <% }) %>
         </table>
