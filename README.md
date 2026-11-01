@@ -74,6 +74,21 @@ diagrams/       use case, component and sequence diagrams
 
 Node.js 20, Express, PostgreSQL 15 through the pg driver, EJS templates, Docker Compose, Jest and Supertest for tests, k6 for load tests, GitHub Actions for CI. See SAD Section 3.6 for the reasoning.
 
-## Sprint 1
+## Sprint 1 features
 
-Tracked as the **Sprint 1** milestone in GitHub Issues.
+Tracked as the **Sprint 1** milestone in GitHub Issues and on the project board.
+
+| Feature | Requirement | Where to see it |
+|---|---|---|
+| Passenger registration, one account per mobile | RRS-F-001 | `/register`, `POST /api/accounts` |
+| OTP verification of the mobile number | RRS-F-002 | `/register`, `POST /api/accounts/:id/otp` and `/verify` |
+| Train search between stations by date | RRS-F-003 | `/search`, `GET /api/trains/search` |
+| Live availability per class and quota | RRS-F-004 | `/search`, `GET /api/trains/:number/availability` |
+| Berth hold, no double allocation, 10 minute expiry | RRS-F-005, F-006 | `/book`, `POST /api/holds` |
+| Quota, then RAC, then waitlist, in request order | RRS-F-007 | `/book`, `POST /api/holds` |
+| Passenger limits (6 general, 4 Tatkal) | RRS-F-008 | `POST /api/holds` |
+| Tatkal opening window | RRS-F-009 | `POST /api/holds` with quota TQ |
+| Itemised fare breakup | RRS-F-010 | `/fare`, `GET /api/fares` |
+| Password hashing and sign in lockout | RRS-SR-005 | `POST /api/auth/login` |
+
+Payment, ticket issue, cancellation, chart preparation and administration are Sprint 2.
