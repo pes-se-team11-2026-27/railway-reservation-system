@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fare | Railway Reservation System</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header><h1>Railway Reservation System</h1></header>
+  <main>
+    <p><a href="/">Home</a></p>
+    <h2>Fare enquiry</h2>
+    <form method="get" action="/fare">
+      <label>Train number <input name="train" value="<%= q.train %>" required></label>
+      <label>From <input name="from" value="<%= q.from %>" required></label>
+      <label>To <input name="to" value="<%= q.to %>" required></label>
+      <label>Class
+        <select name="class">
+          <option value="SL" <%= q.classCode === 'SL' ? 'selected' : '' %>>Sleeper (SL)</option>
+          <option value="3A" <%= q.classCode === '3A' ? 'selected' : '' %>>AC 3 Tier (3A)</option>
+        </select>
+      </label>
+      <label>Passengers <input name="passengers" type="number" min="1" max="6" value="<%= q.passengers %>"></label>
+      <button type="submit">Get fare</button>
+    </form>
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+    <% if (quote) { %>
+      <table>
+        <tr><th>Item</th><th>Amount (Rs)</th></tr>
+        <% quote.breakup.forEach(function (line) { %>
+          <tr><td><%= line.item %></td><td><%= line.amount %></td></tr>
+        <% }) %>
+        <tr><th>Total</th><th><%= quote.totalRupees %></th></tr>
+      </table>
+    <% } %>
+  </main>
+</body>
+</html>
