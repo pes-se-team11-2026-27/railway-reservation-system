@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search trains | Railway Reservation System</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header><h1>Railway Reservation System</h1></header>
+  <main>
+    <p><a href="/">Home</a></p>
+    <h2>Search trains</h2>
+    <form method="get" action="/search">
+      <label>From
+        <select name="from">
+          <% stations.forEach(function (s) { %>
+            <option value="<%= s.code %>" <%= query.from === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
+          <% }) %>
+        </select>
+      </label>
+      <label>To
+        <select name="to">
+          <% stations.forEach(function (s) { %>
+            <option value="<%= s.code %>" <%= query.to === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
+          <% }) %>
+        </select>
+      </label>
+      <label>Date <input type="date" name="date" value="<%= query.date %>" required></label>
+      <button type="submit">Search</button>
+    </form>
+
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+
+    <% if (trains) { %>
+      <% if (!trains.length) { %>
+        <p>No trains run between these stations on this date.</p>
+      <% } else { %>
+        <table>
+          <tr><th>Train</th><th>Departs</th><th>Arrives</th><th>Distance</th><th>Classes</th></tr>
+          <% trains.forEach(function (t) { %>
+            <tr>
+              <td><%= t.number %> <%= t.name %></td>
+              <td><%= t.departs %></td>
+              <td><%= t.arrives %><%= t.arrivalDay ? ' (+' + t.arrivalDay + ' day)' : '' %></td>
+              <td><%= t.distanceKm %> km</td>
+              <td><%= t.classes.join(', ') %></td>
+            </tr>
+          <% }) %>
+        </table>
+      <% } %>
+    <% } %>
+  </main>
+</body>
+</html>
