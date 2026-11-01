@@ -1,0 +1,42 @@
+{
+  "name": "railway-reservation-system",
+  "version": "0.1.0",
+  "description": "Railway Reservation System, SE mini project, Team 11, PES University",
+  "private": true,
+  "main": "src/server.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "migrate": "node src/db/migrate.js",
+    "seed": "node db/seed/seed.js",
+    "seed:if-empty": "node db/seed/seed.js --if-empty",
+    "lint": "eslint .",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "jest --selectProjects unit",
+    "test:integration": "jest --selectProjects integration --runInBand",
+    "test:coverage": "jest --runInBand --coverage"
+  },
+  "jest": {
+    "projects": [
+      { "displayName": "unit", "testEnvironment": "node", "testMatch": ["<rootDir>/tests/unit/**/*.test.js"] },
+      { "displayName": "integration", "testEnvironment": "node", "testMatch": ["<rootDir>/tests/integration/**/*.test.js"], "globalSetup": "<rootDir>/tests/helpers/globalSetup.js" }
+    ],
+    "collectCoverageFrom": ["src/**/*.js", "!src/server.js"],
+    "coverageReporters": ["text", "lcov"]
+  },
+  "dependencies": {
+    "dotenv": "16.4.7",
+    "ejs": "3.1.10",
+    "express": "4.21.2",
+    "pg": "8.13.1",
+    "pino": "9.6.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.17.0",
+    "eslint": "9.17.0",
+    "globals": "15.14.0",
+    "jest": "29.7.0",
+    "supertest": "7.0.0"
+  }
+}

@@ -1,0 +1,5 @@
+body { font-family: system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+header h1 { font-size: 1.6rem; border-bottom: 1px solid #ccc; padding-bottom: .5rem; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ccc; padding: .4rem .6rem; text-align: left; }
+th { background: #eee; }

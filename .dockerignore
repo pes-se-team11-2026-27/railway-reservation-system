@@ -1,0 +1,8 @@
+node_modules
+coverage
+.git
+.github
+docs
+diagrams
+tests
+.env
