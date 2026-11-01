@@ -1,10 +1,11 @@
 'use strict';
 const { pool, withTransaction } = require('../../db/pool');
 const { getSetting } = require('../../settings');
-const { badRequest, notFound, conflict } = require('../../errors');
+const { AppError, badRequest, notFound, conflict } = require('../../errors');
 const inventory = require('../inventory/service');
 const { lockQueue, queueState } = require('../allocation/queue');
 const { assignStatuses } = require('../allocation/allocate');
+const { tatkalOpensAt, formatOpening } = require('../allocation/tatkal');
 const { holdRequestProblem } = require('./validation');
 
 // Loads the run and checks it can still be booked.
@@ -25,6 +26,23 @@ async function loadBookableRun(client, runId, classCode) {
   return run;
 }
 
+async function checkQuotaRules(client, run, quotaCode, passengerCount) {
+  const now = new Date();
+  const isTatkal = quotaCode === 'TQ';
+  const key = isTatkal ? 'max_passengers_tatkal' : 'max_passengers_general';
+  const defaultMax = isTatkal ? 4 : 6;
+  const maxPassengers = Number(await getSetting(key, now, client)) || defaultMax;
+  if (passengerCount > maxPassengers) {
+    throw badRequest('TOO_MANY_PASSENGERS', `Maximum ${maxPassengers} passengers allowed for ${quotaCode} quota`);
+  }
+  if (isTatkal) {
+    const opensAt = tatkalOpensAt(run.run_date, await getSetting('tatkal_open_time', now, client));
+    if (now < opensAt) {
+      throw new AppError(409, 'TATKAL_NOT_OPEN', `Tatkal booking for this train opens at ${formatOpening(opensAt)}`);
+    }
+  }
+}
+
 // RRS-F-005/RRS-F-006/RRS-F-007: holds reserve available berths for
 // hold_minutes, then place overflow passengers into RAC and waitlist.
 async function createHold(input) {
@@ -33,7 +51,8 @@ async function createHold(input) {
   const { runId, classCode, quotaCode, passengers } = input;
 
   const holdId = await withTransaction(async (client) => {
-    await loadBookableRun(client, runId, classCode);
+    const run = await loadBookableRun(client, runId, classCode);
+    await checkQuotaRules(client, run, quotaCode, passengers.length);
     const minutes = Number(await getSetting('hold_minutes', new Date(), client)) || 10;
     await lockQueue(client, { runId, classCode });
 
