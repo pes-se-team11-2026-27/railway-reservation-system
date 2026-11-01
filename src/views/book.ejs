@@ -50,7 +50,11 @@
       </table>
     </div>
     <div class="ticket__foot">
-      <p>Held until <time datetime="<%= new Date(hold.expiresAt).toISOString() %>"><%= timeText(hold.expiresAt) %></time></p>
+      <div class="hold-timer" data-hold-expires="<%= new Date(hold.expiresAt).toISOString() %>" data-hold-minutes="10">
+        <p>Held until <time datetime="<%= new Date(hold.expiresAt).toISOString() %>"><%= timeText(hold.expiresAt) %></time><span class="hold-timer__left" aria-hidden="true"></span></p>
+        <span class="hold-timer__track" aria-hidden="true"><span class="hold-timer__bar"></span></span>
+        <p class="vh" role="status" data-hold-live></p>
+      </div>
       <a href="/search">Search another train</a>
     </div>
   </article>
@@ -122,7 +126,7 @@
     <% }) %>
 
     <div class="form-actions">
-      <button class="button button--primary" type="submit">Hold berths</button>
+      <button class="button button--primary" type="submit" data-busy-text="Holding berths…">Hold berths</button>
       <a href="/search">Back to search</a>
     </div>
   </form>

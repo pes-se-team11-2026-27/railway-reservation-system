@@ -235,6 +235,23 @@ main:focus { outline: none; }
 .field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .field + .field { margin-top: var(--space-4); }
 .field label, .label { font-weight: 700; font-size: var(--fs-14); }
+.label-row { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); min-height: 1.5rem; }
+.swap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 1.5rem;   /* WCAG 2.2 target size minimum is 24px */
+  padding: 0 var(--space-2);
+  margin-right: calc(-1 * var(--space-2));
+  border: 0;
+  border-radius: var(--radius-s);
+  background: none;
+  color: var(--accent);
+  font-size: var(--fs-14);
+  font-weight: 700;
+  cursor: pointer;
+}
+.swap:hover { background: var(--accent-wash); }
 .hint { color: var(--ink-3); font-size: var(--fs-14); font-weight: 400; }
 .field-error { color: var(--error-ink); font-size: var(--fs-14); font-weight: 700; }
 
@@ -449,6 +466,7 @@ a.chip:hover { text-decoration: underline; text-underline-offset: 0.2em; }
 .ticket__tear::after { right: calc(-1 * var(--space-5) - 11px); }
 
 .ticket__body { padding: var(--space-4) var(--space-5) var(--space-5); }
+.ticket__foot p { display: flex; gap: var(--space-3); flex-wrap: wrap; }
 .ticket__foot {
   display: flex;
   flex-wrap: wrap;

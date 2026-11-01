@@ -44,7 +44,7 @@
       <%- fieldError('password') %>
     </div>
     <div class="form-actions">
-      <button class="button button--primary" type="submit">Create account</button>
+      <button class="button button--primary" type="submit" data-busy-text="Creating account…">Create account</button>
     </div>
   </form>
 
@@ -68,7 +68,7 @@
              maxlength="6" spellcheck="false" required <%= error ? 'aria-invalid="true"' : '' %>>
     </div>
     <div class="form-actions">
-      <button class="button button--primary" type="submit">Verify mobile number</button>
+      <button class="button button--primary" type="submit" data-busy-text="Checking code…">Verify mobile number</button>
     </div>
   </form>
 

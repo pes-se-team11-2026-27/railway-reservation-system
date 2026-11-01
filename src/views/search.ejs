@@ -29,7 +29,7 @@
 
   <form class="panel search-form" method="get" action="/search" role="search" aria-label="Search trains">
     <div class="field">
-      <label for="from">From</label>
+      <div class="label-row"><label for="from">From</label></div>
       <select id="from" name="from" autocomplete="off">
         <% stations.forEach(function (s) { %>
           <option value="<%= s.code %>" <%= from === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
@@ -37,7 +37,7 @@
       </select>
     </div>
     <div class="field">
-      <label for="to">To</label>
+      <div class="label-row" data-swap-slot><label for="to">To</label></div>
       <select id="to" name="to" autocomplete="off">
         <% stations.forEach(function (s) { %>
           <option value="<%= s.code %>" <%= to === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
@@ -48,7 +48,7 @@
       <label for="date">Journey date</label>
       <input id="date" type="date" name="date" value="<%= date %>" min="<%= today %>" required>
     </div>
-    <button class="button button--primary" type="submit">Search trains</button>
+    <button class="button button--primary" type="submit" data-busy-text="Searching…">Search trains</button>
   </form>
 
   <% if (trains) { %>
