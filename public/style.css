@@ -3,3 +3,8 @@ header h1 { font-size: 1.6rem; border-bottom: 1px solid #ccc; padding-bottom: .5
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #ccc; padding: .4rem .6rem; text-align: left; }
 th { background: #eee; }
+form label { display: block; margin: .5rem 0; }
+form input, form select { margin-left: .5rem; padding: .25rem; }
+button { padding: .35rem .9rem; margin-top: .5rem; }
+.error { color: #a00; }
+.note { background: #f4f4f4; padding: .5rem; }

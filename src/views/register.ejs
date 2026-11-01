@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register | Railway Reservation System</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header><h1>Railway Reservation System</h1></header>
+  <main>
+    <p><a href="/">Home</a></p>
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+
+    <% if (!account) { %>
+      <h2>Create an account</h2>
+      <form method="post" action="/register">
+        <label>Name <input name="name" value="<%= values.name || '' %>" required></label>
+        <label>Mobile <input name="mobile" value="<%= values.mobile || '' %>" required></label>
+        <label>Email <input name="email" type="email" value="<%= values.email || '' %>" required></label>
+        <label>Password <input name="password" type="password" required></label>
+        <button type="submit">Register</button>
+      </form>
+    <% } else if (!account.mobileVerified) { %>
+      <h2>Verify your mobile number</h2>
+      <p>A code was sent to <%= account.mobile %>.</p>
+      <% if (devCode) { %><p class="note">Test mode, no SMS provider yet. Your code is <strong><%= devCode %></strong>.</p><% } %>
+      <form method="post" action="/register/verify">
+        <input type="hidden" name="accountId" value="<%= account.id %>">
+        <label>Code <input name="code" required></label>
+        <button type="submit">Verify</button>
+      </form>
+    <% } else { %>
+      <h2>Account verified</h2>
+      <p><%= account.name %>, your mobile number <%= account.mobile %> is verified. You can now book tickets.</p>
+    <% } %>
+  </main>
+</body>
+</html>
