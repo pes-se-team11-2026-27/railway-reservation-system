@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book | Railway Reservation System</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header><h1>Railway Reservation System</h1></header>
+  <main>
+    <p><a href="/">Home</a> | <a href="/search">Search trains</a></p>
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+
+    <% if (hold) { %>
+      <h2>Berths held</h2>
+      <p><%= hold.train.number %> <%= hold.train.name %>, class <%= hold.classCode %>, quota <%= hold.quotaCode %>.
+         Hold <%= hold.id %> expires at <%= new Date(hold.expiresAt).toLocaleTimeString() %>. Payment comes in Sprint 2.</p>
+      <table>
+        <tr><th>#</th><th>Name</th><th>Status</th><th>Coach / Berth</th></tr>
+        <% hold.passengers.forEach(function (p) { %>
+          <tr>
+            <td><%= p.seq %></td><td><%= p.name %></td>
+            <td><%= p.status %><%= p.position ? ' ' + p.position : '' %></td>
+            <td><%= p.coach ? p.coach + ' / ' + p.berth : '' %></td>
+          </tr>
+        <% }) %>
+      </table>
+    <% } else if (run) { %>
+      <h2>Book on <%= run.number %> <%= run.name %>, <%= run.run_date %></h2>
+      <form method="post" action="/book">
+        <input type="hidden" name="runId" value="<%= run.id %>">
+        <label>Class
+          <select name="classCode">
+            <% run.classes.forEach(function (c) { %>
+              <option value="<%= c %>" <%= values.classCode === c ? 'selected' : '' %>><%= c %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label>Quota
+          <select name="quotaCode">
+            <option value="GN">General</option>
+            <option value="TQ">Tatkal</option>
+          </select>
+        </label>
+        <% [1, 2, 3].forEach(function (n) { %>
+          <fieldset>
+            <legend>Passenger <%= n %><%= n > 1 ? ' (optional)' : '' %></legend>
+            <label>Name <input name="name<%= n %>" value="<%= values['name' + n] || '' %>"></label>
+            <label>Age <input name="age<%= n %>" type="number" min="1" max="125" value="<%= values['age' + n] || '' %>"></label>
+            <label>Gender
+              <select name="gender<%= n %>"><option>M</option><option>F</option><option>T</option></select>
+            </label>
+          </fieldset>
+        <% }) %>
+        <button type="submit">Hold berths</button>
+      </form>
+    <% } %>
+  </main>
+</body>
+</html>
