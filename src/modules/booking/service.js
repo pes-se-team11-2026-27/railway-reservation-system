@@ -3,6 +3,8 @@ const { pool, withTransaction } = require('../../db/pool');
 const { getSetting } = require('../../settings');
 const { badRequest, notFound, conflict } = require('../../errors');
 const inventory = require('../inventory/service');
+const { lockQueue, queueState } = require('../allocation/queue');
+const { assignStatuses } = require('../allocation/allocate');
 const { holdRequestProblem } = require('./validation');
 
 // Loads the run and checks it can still be booked.
@@ -23,8 +25,8 @@ async function loadBookableRun(client, runId, classCode) {
   return run;
 }
 
-// RRS-F-005 and RRS-F-006: holds free berths for hold_minutes while the
-// passenger pays. Every passenger must get a berth or nothing is held.
+// RRS-F-005/RRS-F-006/RRS-F-007: holds reserve available berths for
+// hold_minutes, then place overflow passengers into RAC and waitlist.
 async function createHold(input) {
   const problem = holdRequestProblem(input);
   if (problem) throw badRequest('INVALID_HOLD', problem);
@@ -33,11 +35,11 @@ async function createHold(input) {
   const holdId = await withTransaction(async (client) => {
     await loadBookableRun(client, runId, classCode);
     const minutes = Number(await getSetting('hold_minutes', new Date(), client)) || 10;
+    await lockQueue(client, { runId, classCode });
 
     const berths = await inventory.lockFreeBerths(client, { runId, classCode, quotaCode, limit: passengers.length });
-    if (berths.length < passengers.length) {
-      throw conflict('NOT_ENOUGH_BERTHS', 'Not enough free berths for all passengers');
-    }
+    const queue = await queueState(client, { runId, classCode, quotaCode });
+    const assigned = assignStatuses({ passengerCount: passengers.length, freeBerths: berths, ...queue });
 
     const hold = await client.query(
       `INSERT INTO holds (run_id, class_code, quota_code, expires_at)
@@ -45,14 +47,20 @@ async function createHold(input) {
       [runId, classCode, quotaCode, minutes],
     );
     const { id, expires_at: expiresAt } = hold.rows[0];
-    await inventory.markHeld(client, { runId, berthIds: berths.map((b) => b.berthId), holdId: id, expiresAt });
+    await inventory.markHeld(client, {
+      runId,
+      berthIds: assigned.filter((a) => a.berthId !== null).map((a) => a.berthId),
+      holdId: id,
+      expiresAt,
+    });
 
     for (let i = 0; i < passengers.length; i++) {
       const p = passengers[i];
+      const a = assigned[i];
       await client.query(
-        `INSERT INTO hold_passengers (hold_id, seq, name, age, gender, status, berth_id)
-         VALUES ($1, $2, $3, $4, $5, 'CNF', $6)`,
-        [id, i + 1, p.name.trim(), p.age, p.gender, berths[i].berthId],
+        `INSERT INTO hold_passengers (hold_id, seq, name, age, gender, status, berth_id, position)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [id, i + 1, p.name.trim(), p.age, p.gender, a.status, a.berthId, a.position],
       );
     }
     return id;
