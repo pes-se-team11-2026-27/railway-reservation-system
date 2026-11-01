@@ -25,9 +25,10 @@
   }
 }
 
-/* Spatial consistency: the swap control turns as From and To trade places. */
-.swap svg { transition: transform 200ms var(--ease-in-out); }
-.swap[data-turned="true"] svg { transform: rotate(180deg); }
+/* Spatial consistency: the swap control turns as From and To trade places.
+   The base angle is horizontal on wide screens and vertical when stacked. */
+.swap svg { transform: rotate(var(--swap-base, 0deg)); transition: transform 200ms var(--ease-in-out); }
+.swap[data-turned="true"] svg { transform: rotate(calc(var(--swap-base, 0deg) + 180deg)); }
 
 /* The one authored moment: the held ticket arrives, then its passengers.
    Rare (once per booking), so it may take a little longer. */
