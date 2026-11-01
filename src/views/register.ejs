@@ -1,39 +1,83 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Register | Railway Reservation System</title>
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-  <header><h1>Railway Reservation System</h1></header>
-  <main>
-    <p><a href="/">Home</a></p>
-    <% if (error) { %><p class="error"><%= error %></p><% } %>
+<%
+  const errorField = locals.errorField || null;
+  // Marks the field invalid and points it at its hint and its error message.
+  const invalid = (f, hint) => {
+    const ids = [hint, errorField === f ? f + '-error' : null].filter(Boolean).join(' ');
+    return (errorField === f ? 'aria-invalid="true" ' : '') + (ids ? 'aria-describedby="' + ids + '"' : '');
+  };
+  const fieldError = (f) => errorField === f ? '<p class="field-error" id="' + f + '-error">' + String(error).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') + '</p>' : '';
+%>
+<%- include('partials/top', { title: !account ? 'Create an account' : (account.mobileVerified ? 'Account verified' : 'Verify your mobile number'), current: 'register' }) %>
 
-    <% if (!account) { %>
-      <h2>Create an account</h2>
-      <form method="post" action="/register">
-        <label>Name <input name="name" value="<%= values.name || '' %>" required></label>
-        <label>Mobile <input name="mobile" value="<%= values.mobile || '' %>" required></label>
-        <label>Email <input name="email" type="email" value="<%= values.email || '' %>" required></label>
-        <label>Password <input name="password" type="password" required></label>
-        <button type="submit">Register</button>
-      </form>
-    <% } else if (!account.mobileVerified) { %>
-      <h2>Verify your mobile number</h2>
-      <p>A code was sent to <%= account.mobile %>.</p>
-      <% if (devCode) { %><p class="note">Test mode, no SMS provider yet. Your code is <strong><%= devCode %></strong>.</p><% } %>
-      <form method="post" action="/register/verify">
-        <input type="hidden" name="accountId" value="<%= account.id %>">
-        <label>Code <input name="code" required></label>
-        <button type="submit">Verify</button>
-      </form>
-    <% } else { %>
-      <h2>Account verified</h2>
-      <p><%= account.name %>, your mobile number <%= account.mobile %> is verified. You can now book tickets.</p>
-    <% } %>
-  </main>
-</body>
-</html>
+<% if (!account) { %>
+  <div class="page-head">
+    <h1>Create an account</h1>
+    <p>Your mobile number is your account. We send a code to it once to confirm it is yours.</p>
+  </div>
+
+  <%- include('partials/error', { error, errorField }) %>
+
+  <form class="panel narrow" method="post" action="/register" novalidate>
+    <div class="field">
+      <label for="name">Full name</label>
+      <input id="name" type="text" name="name" value="<%= values.name || '' %>" autocomplete="name" required <%- invalid('name') %>>
+      <%- fieldError('name') %>
+    </div>
+    <div class="field">
+      <label for="mobile">Mobile number</label>
+      <input id="mobile" type="tel" name="mobile" value="<%= values.mobile || '' %>" autocomplete="tel-national"
+             inputmode="numeric" maxlength="10" required <%- invalid('mobile', 'mobile-hint') %>>
+      <p class="hint" id="mobile-hint">10 digits, starting with 6, 7, 8 or 9.</p>
+      <%- fieldError('mobile') %>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="<%= values.email || '' %>" autocomplete="email"
+             spellcheck="false" required <%- invalid('email') %>>
+      <%- fieldError('email') %>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" name="password" autocomplete="new-password"
+             required <%- invalid('password', 'password-hint') %>>
+      <p class="hint" id="password-hint">At least 8 characters, with a letter and a number.</p>
+      <%- fieldError('password') %>
+    </div>
+    <div class="form-actions">
+      <button class="button button--primary" type="submit">Create account</button>
+    </div>
+  </form>
+
+<% } else if (!account.mobileVerified) { %>
+  <div class="page-head">
+    <h1>Verify your mobile number</h1>
+    <p>Enter the 6 digit code sent to <span translate="no"><%= account.mobile %></span>. It works for 10 minutes.</p>
+  </div>
+
+  <%- include('partials/error', { error }) %>
+
+  <% if (devCode) { %>
+    <p class="note narrow" role="status">Test mode, there is no SMS provider yet. Your code is <span class="code"><%= devCode %></span></p>
+  <% } %>
+
+  <form class="panel narrow" method="post" action="/register/verify" novalidate style="margin-top: 1rem">
+    <input type="hidden" name="accountId" value="<%= account.id %>">
+    <div class="field">
+      <label for="code">Verification code</label>
+      <input id="code" type="text" name="code" autocomplete="one-time-code" inputmode="numeric"
+             maxlength="6" spellcheck="false" required <%= error ? 'aria-invalid="true"' : '' %>>
+    </div>
+    <div class="form-actions">
+      <button class="button button--primary" type="submit">Verify mobile number</button>
+    </div>
+  </form>
+
+<% } else { %>
+  <div class="page-head">
+    <h1>Account verified</h1>
+    <p><%= account.name %>, your mobile number <span translate="no"><%= account.mobile %></span> is confirmed. You can book tickets now.</p>
+  </div>
+  <p><a class="button button--primary" href="/search">Search trains</a></p>
+<% } %>
+
+<%- include('partials/bottom') %>

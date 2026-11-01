@@ -1,39 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fare | Railway Reservation System</title>
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-  <header><h1>Railway Reservation System</h1></header>
-  <main>
-    <p><a href="/">Home</a></p>
-    <h2>Fare enquiry</h2>
-    <form method="get" action="/fare">
-      <label>Train number <input name="train" value="<%= q.train %>" required></label>
-      <label>From <input name="from" value="<%= q.from %>" required></label>
-      <label>To <input name="to" value="<%= q.to %>" required></label>
-      <label>Class
-        <select name="class">
-          <option value="SL" <%= q.classCode === 'SL' ? 'selected' : '' %>>Sleeper (SL)</option>
-          <option value="3A" <%= q.classCode === '3A' ? 'selected' : '' %>>AC 3 Tier (3A)</option>
-        </select>
-      </label>
-      <label>Passengers <input name="passengers" type="number" min="1" max="6" value="<%= q.passengers %>"></label>
-      <button type="submit">Get fare</button>
-    </form>
-    <% if (error) { %><p class="error"><%= error %></p><% } %>
-    <% if (quote) { %>
-      <table>
-        <tr><th>Item</th><th>Amount (Rs)</th></tr>
-        <% quote.breakup.forEach(function (line) { %>
-          <tr><td><%= line.item %></td><td><%= line.amount %></td></tr>
+<%
+  const classNames = { SL: 'Sleeper', '3A': 'AC 3 tier' };
+  const money = (v) => 'Rs ' + Number(v).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+%>
+<%- include('partials/top', { title: 'Check a fare', current: 'fare' }) %>
+  <div class="page-head">
+    <h1>Check a fare</h1>
+    <p>See the full fare before you book: base fare, reservation charge, GST and the booking fee.</p>
+  </div>
+
+  <%- include('partials/error', { error }) %>
+
+  <form class="panel" method="get" action="/fare" novalidate>
+    <div class="grid-2">
+      <div class="field">
+        <label for="train">Train number</label>
+        <input id="train" type="text" name="train" value="<%= q.train %>" inputmode="numeric" maxlength="5"
+               autocomplete="off" spellcheck="false" aria-describedby="train-hint" required>
+        <p class="hint" id="train-hint">For example 12608.</p>
+      </div>
+      <div class="field">
+        <label for="passengers">Passengers</label>
+        <input id="passengers" type="number" name="passengers" value="<%= q.passengers %>" min="1" max="6" inputmode="numeric" aria-describedby="passengers-hint">
+        <p class="hint" id="passengers-hint">1 to 6.</p>
+      </div>
+      <div class="field">
+        <label for="from">From station code</label>
+        <input id="from" type="text" name="from" value="<%= q.from %>" maxlength="5" autocapitalize="characters"
+               autocomplete="off" spellcheck="false" aria-describedby="from-hint" required>
+        <p class="hint" id="from-hint">For example SBC.</p>
+      </div>
+      <div class="field">
+        <label for="to">To station code</label>
+        <input id="to" type="text" name="to" value="<%= q.to %>" maxlength="5" autocapitalize="characters"
+               autocomplete="off" spellcheck="false" aria-describedby="to-hint" required>
+        <p class="hint" id="to-hint">For example MAS.</p>
+      </div>
+    </div>
+    <fieldset style="margin-top: 1rem">
+      <legend>Class</legend>
+      <div class="choices">
+        <% ['SL', '3A'].forEach(function (c) { %>
+          <label class="choice">
+            <input type="radio" name="class" value="<%= c %>" <%= q.classCode === c ? 'checked' : '' %>>
+            <span><%= classNames[c] %><small translate="no"><%= c %></small></span>
+          </label>
         <% }) %>
-        <tr><th>Total</th><th><%= quote.totalRupees %></th></tr>
-      </table>
-    <% } %>
-  </main>
-</body>
-</html>
+      </div>
+    </fieldset>
+    <div class="form-actions">
+      <button class="button button--primary" type="submit">Get fare</button>
+    </div>
+  </form>
+
+  <% if (quote) { %>
+    <section class="panel" aria-labelledby="fare-heading">
+      <h2 id="fare-heading" class="section-head">Fare for <span translate="no"><%= quote.train %></span>, <%= String(quote.from).toUpperCase() %> to <%= String(quote.to).toUpperCase() %></h2>
+      <div class="table-wrap">
+        <table>
+          <caption><%= classNames[quote.classCode] || quote.classCode %>, <%= quote.passengers %> <%= quote.passengers === 1 ? 'passenger' : 'passengers' %>, <%= quote.distanceKm %> km<%= quote.chargeableKm > quote.distanceKm ? ' (charged as ' + quote.chargeableKm + ' km, the class minimum)' : '' %></caption>
+          <thead>
+            <tr><th scope="col">Item</th><th scope="col" class="num">Amount</th></tr>
+          </thead>
+          <tbody>
+            <% quote.breakup.forEach(function (line) { %>
+              <tr><th scope="row"><%= line.item %></th><td class="num"><%= money(line.amount) %></td></tr>
+            <% }) %>
+          </tbody>
+          <tfoot>
+            <tr><th scope="row">Total</th><td class="num"><%= money(quote.totalRupees) %></td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  <% } %>
+<%- include('partials/bottom') %>

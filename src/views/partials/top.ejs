@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> | Railway Reservation</title>
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1b1c1f" media="(prefers-color-scheme: dark)">
+  <link rel="preload" href="/fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/atkinson-hyperlegible-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="/">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true" focusable="false">
+          <path d="M3 10h22M3 18h22" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M7 7v14M12 7v14M17 7v14M22 7v14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>
+        </svg>
+        Railway Reservation
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="/search"<% if (locals.current === 'search') { %> aria-current="page"<% } %>>Search trains</a></li>
+          <li><a href="/fare"<% if (locals.current === 'fare') { %> aria-current="page"<% } %>>Check a fare</a></li>
+          <li><a href="/register"<% if (locals.current === 'register') { %> aria-current="page"<% } %>>Create account</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="main" tabindex="-1">

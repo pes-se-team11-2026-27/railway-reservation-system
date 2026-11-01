@@ -32,7 +32,8 @@ function createApp() {
   app.use(express.urlencoded({ extended: false }));
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
-  app.get('/', (req, res) => res.render('index'));
+  // The most frequent job, finding a train, is the home page.
+  app.get('/', (req, res) => res.redirect('/search'));
   app.use('/health', healthRoutes);
   mountModules(app);
 
