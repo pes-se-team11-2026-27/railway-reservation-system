@@ -1,61 +1,119 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Search trains | Railway Reservation System</title>
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-  <header><h1>Railway Reservation System</h1></header>
-  <main>
-    <p><a href="/">Home</a></p>
-    <h2>Search trains</h2>
-    <form method="get" action="/search">
-      <label>From
-        <select name="from">
-          <% stations.forEach(function (s) { %>
-            <option value="<%= s.code %>" <%= query.from === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
-          <% }) %>
-        </select>
-      </label>
-      <label>To
-        <select name="to">
-          <% stations.forEach(function (s) { %>
-            <option value="<%= s.code %>" <%= query.to === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
-          <% }) %>
-        </select>
-      </label>
-      <label>Date <input type="date" name="date" value="<%= query.date %>" required></label>
-      <button type="submit">Search</button>
-    </form>
+<%
+  const pad = (n) => String(n).padStart(2, '0');
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const now = new Date();
+  const today = iso(now);
+  const tomorrow = iso(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+  const shiftDay = (d, n) => { const [y, m, dd] = d.split('-').map(Number); return iso(new Date(y, m - 1, dd + n)); };
+  const longDate = (d) => new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+    .format(new Date(d + 'T00:00:00Z'));
+  const mins = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const duration = (t) => {
+    const d = mins(t.arrives) + t.arrivalDay * 1440 - mins(t.departs);
+    return `${Math.floor(d / 60)} h ${pad(d % 60)} m`;
+  };
+  const nameOf = (code) => (stations.find((s) => s.code === code) || { name: code }).name;
+  const from = query.from || 'SBC';
+  const to = query.to || 'MAS';
+  const date = query.date || tomorrow;
+  const classNames = { SL: 'Sleeper', '3A': 'AC 3 tier' };
+  const classOrder = { SL: 1, '3A': 2 };
+%>
+<%- include('partials/top', { title: 'Search trains', current: 'search' }) %>
+  <div class="page-head">
+    <h1>Find a train</h1>
+    <p>Pick your stations and journey date to see trains, times and the berths left in each class.</p>
+  </div>
 
-    <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <%- include('partials/error', { error }) %>
 
-    <% if (trains) { %>
+  <form class="panel search-form" method="get" action="/search" role="search" aria-label="Search trains">
+    <div class="field">
+      <label for="from">From</label>
+      <select id="from" name="from" autocomplete="off">
+        <% stations.forEach(function (s) { %>
+          <option value="<%= s.code %>" <%= from === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label for="to">To</label>
+      <select id="to" name="to" autocomplete="off">
+        <% stations.forEach(function (s) { %>
+          <option value="<%= s.code %>" <%= to === s.code ? 'selected' : '' %>><%= s.name %> (<%= s.code %>)</option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field">
+      <label for="date">Journey date</label>
+      <input id="date" type="date" name="date" value="<%= date %>" min="<%= today %>" required>
+    </div>
+    <button class="button button--primary" type="submit">Search trains</button>
+  </form>
+
+  <% if (trains) { %>
+    <section class="panel" aria-labelledby="results-heading">
+      <div class="section-head">
+        <h2 id="results-heading">
+          <%= trains.length === 1 ? '1 train' : trains.length + ' trains' %> from <%= nameOf(query.from) %> to <%= nameOf(query.to) %>
+        </h2>
+        <p><%= longDate(query.date) %>. Availability is for the general quota and updates live.</p>
+      </div>
+
       <% if (!trains.length) { %>
-        <p>No trains run between these stations on this date.</p>
+        <div class="empty">
+          <p>No trains run between these stations on <%= longDate(query.date) %>. Trains only run in the direction of their route, and the Chennai Mail runs Monday to Friday.</p>
+          <p>
+            <a href="/search?from=<%= query.from %>&to=<%= query.to %>&date=<%= shiftDay(query.date, -1) %>">Try the day before</a>
+            or
+            <a href="/search?from=<%= query.from %>&to=<%= query.to %>&date=<%= shiftDay(query.date, 1) %>">the day after</a>.
+          </p>
+        </div>
       <% } else { %>
-        <table>
-          <tr><th>Train</th><th>Departs</th><th>Arrives</th><th>Distance</th><th>Availability (General)</th><th></th></tr>
+        <ol class="journeys">
           <% trains.forEach(function (t) { %>
-            <tr>
-              <td><%= t.number %> <%= t.name %></td>
-              <td><%= t.departs %></td>
-              <td><%= t.arrives %><%= t.arrivalDay ? ' (+' + t.arrivalDay + ' day)' : '' %></td>
-              <td><%= t.distanceKm %> km</td>
-              <td>
-                <% t.classes.forEach(function (c) { var a = t.availability[c]; %>
-                  <div><%= c %>: <%= a.confirmedAvailable > 0 ? a.confirmedAvailable + ' available'
-                    : (a.racAvailable > 0 ? 'RAC ' + a.racAvailable : 'WL ' + (a.waitlist + 1)) %></div>
+            <li class="journey">
+              <div>
+                <span class="train-no" translate="no"><%= t.number %></span>
+                <span class="train-name"><%= t.name %></span>
+              </div>
+
+              <div class="times">
+                <p class="vh">Departs <%= t.departs %> from <%= nameOf(query.from) %>, arrives <%= t.arrives %><%= t.arrivalDay ? ' the next day' : '' %> at <%= nameOf(query.to) %>. Journey time <%= duration(t) %>, <%= t.distanceKm %> km.</p>
+                <div class="stop" aria-hidden="true">
+                  <time><%= t.departs %></time>
+                  <span translate="no"><%= query.from %></span>
+                </div>
+                <div aria-hidden="true">
+                  <div class="route-line"></div>
+                  <span class="route-meta"><%= duration(t) %>, <%= t.distanceKm %> km</span>
+                </div>
+                <div class="stop" aria-hidden="true">
+                  <time><%= t.arrives %><% if (t.arrivalDay) { %><span class="next-day">+1</span><% } %></time>
+                  <span translate="no"><%= query.to %></span>
+                </div>
+              </div>
+
+              <ul class="availability" aria-label="Book on <%= t.number %>">
+                <% t.classes.slice().sort(function (a, b) { return (classOrder[a] || 9) - (classOrder[b] || 9); }).forEach(function (c) {
+                     const a = t.availability[c];
+                     const kind = a.confirmedAvailable > 0 ? 'cnf' : (a.racAvailable > 0 ? 'rac' : 'wl');
+                     const label = a.confirmedAvailable > 0 ? a.confirmedAvailable + ' available'
+                       : (a.racAvailable > 0 ? 'RAC ' + a.racAvailable : 'WL ' + (a.waitlist + 1)); %>
+                  <li>
+                    <a class="chip chip--<%= kind %>" href="/book?runId=<%= t.runId %>&class=<%= c %>"><%= c %>: <%= label %><span class="vh">, book <%= classNames[c] || c %></span></a>
+                  </li>
                 <% }) %>
-              </td>
-              <td><a href="/book?runId=<%= t.runId %>">Book</a></td>
-            </tr>
+              </ul>
+            </li>
           <% }) %>
-        </table>
+        </ol>
       <% } %>
-    <% } %>
-  </main>
-</body>
-</html>
+    </section>
+  <% } else { %>
+    <section class="panel empty" aria-labelledby="routes-heading">
+      <h2 id="routes-heading" class="section-head">Routes in this build</h2>
+      <p>Three trains run from KSR Bengaluru to Chennai Central, stopping at Bangarapet and Katpadi. Bookings open 30 days ahead. Tatkal opens at 10:00 on the day before travel.</p>
+    </section>
+  <% } %>
+<%- include('partials/bottom') %>

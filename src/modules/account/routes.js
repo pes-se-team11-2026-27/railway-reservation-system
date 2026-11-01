@@ -42,7 +42,7 @@ pages.post('/register', async (req, res) => {
     const { code } = await service.issueOtp(account.id);
     res.render('register', { error: null, account, devCode: showDevCode ? code : null, values: {} });
   } catch (err) {
-    res.status(err.status || 500).render('register', { error: err.message, account: null, devCode: null, values: req.body });
+    res.status(err.status || 500).render('register', { error: err.message, errorField: err.field || null, account: null, devCode: null, values: req.body });
   }
 });
 
