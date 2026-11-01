@@ -25,8 +25,8 @@ async function loadBookableRun(client, runId, classCode) {
   return run;
 }
 
-// RRS-F-005 and RRS-F-006: holds free berths for hold_minutes while the
-// passenger pays. Every passenger must get a berth or nothing is held.
+// RRS-F-005/RRS-F-006/RRS-F-007: holds reserve available berths for
+// hold_minutes, then place overflow passengers into RAC and waitlist.
 async function createHold(input) {
   const problem = holdRequestProblem(input);
   if (problem) throw badRequest('INVALID_HOLD', problem);
