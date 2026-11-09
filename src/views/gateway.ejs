@@ -1,0 +1,29 @@
+<%
+  const rupees = (p) => 'Rs ' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+%>
+<%- include('partials/top', { title: 'Payment', current: null }) %>
+  <div class="page-head">
+    <h1>Payment</h1>
+    <p>Test payment gateway. In production this page belongs to the payment provider, so card details never reach the railway system.</p>
+  </div>
+
+  <section class="panel narrow" aria-labelledby="pay-heading">
+    <h2 id="pay-heading" class="section-head">Pay <%= rupees(payment.amountPaise) %></h2>
+    <dl class="ticket__facts">
+      <div><dt>Merchant</dt><dd>Railway Reservation System</dd></div>
+      <div><dt>Reference</dt><dd translate="no"><%= payment.txRef %></dd></div>
+      <div><dt>Status</dt><dd><%= payment.status %></dd></div>
+    </dl>
+
+    <% if (!result && payment.status === 'PENDING') { %>
+      <form method="post" action="/gateway/pay/<%= payment.txRef %>" class="form-actions">
+        <button class="button button--primary" type="submit" name="outcome" value="success" data-busy-text="Paying…">Pay (test success)</button>
+        <button class="button button--secondary" type="submit" name="outcome" value="decline">Decline (test failure)</button>
+      </form>
+    <% } else { %>
+      <p class="note" role="status" style="margin-top: 1rem">
+        <%= payment.status === 'SUCCESS' ? 'Payment successful.' : 'Payment declined. No money was taken.' %>
+      </p>
+    <% } %>
+  </section>
+<%- include('partials/bottom') %>
