@@ -1,0 +1,26 @@
+<%
+  const roleNames = { CLERK: 'Booking clerk', ADMIN: 'Reservation administrator', TTE: 'Ticket examiner' };
+%>
+<%- include('partials/top', { title: forbidden ? 'Not allowed' : 'Staff', current: null }) %>
+  <% if (forbidden) { %>
+    <div class="page-head">
+      <h1>Not allowed</h1>
+      <p>Your role, <%= roleNames[auth.role] || auth.role %>, cannot open this page.</p>
+    </div>
+    <p><a class="button button--secondary" href="/staff">Back to staff home</a></p>
+  <% } else { %>
+    <div class="page-head">
+      <h1>Hello, <%= auth.name %></h1>
+      <p>Signed in as <strong><%= roleNames[auth.role] || auth.role %></strong>. This terminal signs you out after 5 minutes without activity.</p>
+    </div>
+    <section class="panel narrow">
+      <ul>
+        <li><a href="/search">Book for a passenger</a></li>
+        <% if (auth.role === 'ADMIN') { %><li><a href="/admin">Administration console</a></li><% } %>
+      </ul>
+    </section>
+  <% } %>
+  <form method="post" action="/staff/logout" style="margin-top: 1.5rem">
+    <button class="button button--secondary" type="submit">Sign out</button>
+  </form>
+<%- include('partials/bottom') %>

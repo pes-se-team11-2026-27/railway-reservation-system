@@ -1,0 +1,12 @@
+<%- include('partials/top', { title: 'Administration', current: null }) %>
+  <div class="page-head">
+    <h1>Administration console</h1>
+    <p>Signed in as <%= auth.name %>. Schedules, quotas, fare rules and the audit log are managed here.</p>
+  </div>
+  <section class="panel narrow">
+    <p>Only reservation administrators can open this page. Fare and quota rules arrive here in Sprint 2 (RRS-F-019).</p>
+  </section>
+  <form method="post" action="/staff/logout" style="margin-top: 1.5rem">
+    <button class="button button--secondary" type="submit">Sign out</button>
+  </form>
+<%- include('partials/bottom') %>
