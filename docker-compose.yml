@@ -20,6 +20,7 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/rrs
       PORT: 3000
+      NODE_ENV: development
     ports:
       - "3000:3000"
     depends_on:
