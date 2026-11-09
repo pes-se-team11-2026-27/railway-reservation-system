@@ -4,6 +4,7 @@ const { createApp } = require('../../src/app');
 const { pool } = require('../../src/db/pool');
 const { releaseExpiredHolds } = require('../../src/modules/booking/service');
 const { getRunId } = require('../helpers/fixtures');
+const { verifiedPassenger } = require('../helpers/passengers');
 
 let server;
 beforeAll(() => { server = createApp().listen(0); });
@@ -122,7 +123,8 @@ describe('hold request errors', () => {
 describe('booking page', () => {
   test('holds berths from the form', async () => {
     const runId = await getRunId('12608', 5);
-    const res = await request(server).post('/book').type('form')
+    const { agent } = await verifiedPassenger(server);
+    const res = await agent.post('/book').type('form')
       .send({ runId, classCode: '3A', quotaCode: 'GN', name1: 'Form User', age1: '33', gender1: 'F' });
     expect(res.status).toBe(200);
     expect(res.text).toContain('Berths held');

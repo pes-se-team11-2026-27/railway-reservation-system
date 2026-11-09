@@ -1,0 +1,10 @@
+<% if (locals.error) { %>
+  <div class="error-summary" role="alert" tabindex="-1" id="error-summary">
+    <h2>There is a problem</h2>
+    <% if (locals.errorField) { %>
+      <p><a href="#<%= errorField %>"><%= error %></a></p>
+    <% } else { %>
+      <p><%= error %></p>
+    <% } %>
+  </div>
+<% } %>

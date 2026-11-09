@@ -1,0 +1,15 @@
+<%- include('partials/top', { title: 'Payment', current: null }) %>
+  <% if (outcome === 'PENDING') { %>
+    <div class="page-head"><h1>Waiting for your payment</h1><p>We have not heard from the payment provider yet. This page will show your ticket once it confirms.</p></div>
+    <p><a class="button button--secondary" href="/payment/return/<%= payment.txRef %>">Check again</a></p>
+  <% } else if (outcome === 'DECLINED') { %>
+    <div class="page-head"><h1>Payment declined</h1><p>No money was taken and your held berths have been released. You can search and book again.</p></div>
+    <p><a class="button button--primary" href="/search">Search trains</a></p>
+  <% } else if (outcome === 'ALLOCATION_FAILED') { %>
+    <div class="page-head"><h1>Payment received, berths no longer available</h1><p>Your hold ran out before the payment arrived and the berths went to someone else. No ticket was issued, and the full amount will be refunded to you.</p></div>
+    <p class="note narrow">Refund <span translate="no"><%= locals.refundRef || 'requested' %></span> for payment <span translate="no"><%= payment.txRef %></span> has been started; it reaches your account in 5 to 7 working days. We have sent you the details by SMS and email.</p>
+  <% } else { %>
+    <div class="page-head"><h1>Payment could not start</h1><p><%= message %></p></div>
+    <p><a class="button button--primary" href="/search">Search trains</a></p>
+  <% } %>
+<%- include('partials/bottom') %>

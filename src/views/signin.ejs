@@ -1,0 +1,40 @@
+<%- include('partials/top', { title: step === 'code' ? 'Verify your mobile number' : 'Sign in', current: null }) %>
+  <div class="page-head">
+    <h1><%= step === 'code' ? 'Verify your mobile number' : 'Sign in' %></h1>
+    <p><%= step === 'code' ? 'Enter the 6 digit code sent to your mobile. You need a verified number to book.' : 'Sign in to book tickets and see your bookings.' %></p>
+  </div>
+
+  <%- include('partials/error', { error }) %>
+
+  <% if (step === 'password') { %>
+    <form class="panel narrow" method="post" action="/signin" novalidate>
+      <input type="hidden" name="next" value="<%= next %>">
+      <div class="field">
+        <label for="mobile">Mobile number</label>
+        <input id="mobile" type="tel" name="mobile" value="<%= values.mobile || '' %>" autocomplete="tel-national" inputmode="numeric" maxlength="10" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" autocomplete="current-password" required>
+      </div>
+      <div class="form-actions">
+        <button class="button button--primary" type="submit" data-busy-text="Signing in…">Sign in</button>
+        <a href="/register">Create an account</a>
+      </div>
+    </form>
+  <% } else { %>
+    <% if (devCode) { %>
+      <p class="note narrow" role="status">Test mode, there is no SMS provider yet. Your code is <span class="code"><%= devCode %></span></p>
+    <% } %>
+    <form class="panel narrow" method="post" action="/signin/verify" novalidate style="margin-top: 1rem">
+      <input type="hidden" name="next" value="<%= next %>">
+      <div class="field">
+        <label for="code">Verification code</label>
+        <input id="code" type="text" name="code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" spellcheck="false" required>
+      </div>
+      <div class="form-actions">
+        <button class="button button--primary" type="submit" data-busy-text="Checking code…">Verify and continue</button>
+      </div>
+    </form>
+  <% } %>
+<%- include('partials/bottom') %>

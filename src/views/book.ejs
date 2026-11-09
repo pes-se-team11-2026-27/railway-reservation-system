@@ -1,61 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Book | Railway Reservation System</title>
-  <link rel="stylesheet" href="/style.css">
-</head>
-<body>
-  <header><h1>Railway Reservation System</h1></header>
-  <main>
-    <p><a href="/">Home</a> | <a href="/search">Search trains</a></p>
-    <% if (error) { %><p class="error"><%= error %></p><% } %>
+<%
+  const classNames = { SL: 'Sleeper', '3A': 'AC 3 tier' };
+  const quotaNames = { GN: 'General', TQ: 'Tatkal' };
+  const genderNames = { M: 'Male', F: 'Female', T: 'Transgender' };
+  const dayText = (d) => new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+    .format(typeof d === 'string' ? new Date(d + 'T00:00:00Z') : new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())));
+  const timeText = (d) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(d));
+  const statusText = (p) => p.status === 'CNF' ? 'CNF' : `${p.status} ${p.position}`;
+  const statusLong = (p) => p.status === 'CNF' ? 'Confirmed' : (p.status === 'RAC' ? `RAC ${p.position}, shares a berth until one frees up` : `Waitlist ${p.position}`);
+  const chosenClass = values.classCode || (run && run.classes[0]);
+  const chosenQuota = values.quotaCode || 'GN';
+%>
+<%- include('partials/top', { title: hold ? 'Berths held' : 'Book berths', current: 'search' }) %>
 
-    <% if (hold) { %>
-      <h2>Berths held</h2>
-      <p><%= hold.train.number %> <%= hold.train.name %>, class <%= hold.classCode %>, quota <%= hold.quotaCode %>.
-         Hold <%= hold.id %> expires at <%= new Date(hold.expiresAt).toLocaleTimeString() %>. Payment comes in Sprint 2.</p>
+<% if (hold) { %>
+  <div class="page-head">
+    <h1>Berths held</h1>
+    <p>Your berths are held for 10 minutes while you pay. Pay before the hold runs out to get your PNR.</p>
+  </div>
+
+  <article class="ticket" aria-labelledby="ticket-train">
+    <div class="ticket__head">
+      <div>
+        <span class="train-no" id="ticket-train" translate="no"><%= hold.train.number %></span>
+        <span class="train-name"><%= hold.train.name %></span>
+      </div>
+      <dl class="ticket__facts">
+        <div><dt>Journey</dt><dd><%= dayText(hold.runDate) %></dd></div>
+        <div><dt>Class</dt><dd><%= classNames[hold.classCode] || hold.classCode %></dd></div>
+        <div><dt>Quota</dt><dd><%= quotaNames[hold.quotaCode] || hold.quotaCode %></dd></div>
+        <div><dt>Hold</dt><dd>#<%= hold.id %></dd></div>
+      </dl>
+    </div>
+    <div class="ticket__tear" aria-hidden="true"></div>
+    <div class="ticket__body table-wrap">
       <table>
-        <tr><th>#</th><th>Name</th><th>Status</th><th>Coach / Berth</th></tr>
-        <% hold.passengers.forEach(function (p) { %>
-          <tr>
-            <td><%= p.seq %></td><td><%= p.name %></td>
-            <td><%= p.status %><%= p.position ? ' ' + p.position : '' %></td>
-            <td><%= p.coach ? p.coach + ' / ' + p.berth : '' %></td>
-          </tr>
-        <% }) %>
+        <caption class="vh">Passengers on hold <%= hold.id %></caption>
+        <thead>
+          <tr><th scope="col">Passenger</th><th scope="col">Status</th><th scope="col" class="num">Coach and berth</th></tr>
+        </thead>
+        <tbody>
+          <% hold.passengers.forEach(function (p) { %>
+            <tr>
+              <th scope="row"><strong><%= p.name %></strong> <span class="hint"><%= p.age %>, <%= genderNames[p.gender] || p.gender %></span></th>
+              <td><span class="chip chip--<%= p.status.toLowerCase() %>" title="<%= statusLong(p) %>"><%= statusText(p) %></span><span class="vh">, <%= statusLong(p) %></span></td>
+              <td class="num"><%= p.coach ? p.coach + ' / ' + p.berth : 'Given at chart time' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
       </table>
-    <% } else if (run) { %>
-      <h2>Book on <%= run.number %> <%= run.name %>, <%= run.run_date %></h2>
-      <form method="post" action="/book">
-        <input type="hidden" name="runId" value="<%= run.id %>">
-        <label>Class
-          <select name="classCode">
-            <% run.classes.forEach(function (c) { %>
-              <option value="<%= c %>" <%= values.classCode === c ? 'selected' : '' %>><%= c %></option>
-            <% }) %>
-          </select>
-        </label>
-        <label>Quota
-          <select name="quotaCode">
-            <option value="GN">General</option>
-            <option value="TQ">Tatkal</option>
-          </select>
-        </label>
-        <% [1, 2, 3].forEach(function (n) { %>
-          <fieldset>
-            <legend>Passenger <%= n %><%= n > 1 ? ' (optional)' : '' %></legend>
-            <label>Name <input name="name<%= n %>" value="<%= values['name' + n] || '' %>"></label>
-            <label>Age <input name="age<%= n %>" type="number" min="1" max="125" value="<%= values['age' + n] || '' %>"></label>
-            <label>Gender
-              <select name="gender<%= n %>"><option>M</option><option>F</option><option>T</option></select>
-            </label>
-          </fieldset>
-        <% }) %>
-        <button type="submit">Hold berths</button>
+    </div>
+    <div class="ticket__foot">
+      <div class="hold-timer" data-hold-expires="<%= new Date(hold.expiresAt).toISOString() %>" data-hold-minutes="10">
+        <p>Held until <time datetime="<%= new Date(hold.expiresAt).toISOString() %>"><%= timeText(hold.expiresAt) %></time><span class="hold-timer__left" aria-hidden="true"></span></p>
+        <span class="hold-timer__track" aria-hidden="true"><span class="hold-timer__bar"></span></span>
+        <p class="vh" role="status" data-hold-live></p>
+      </div>
+      <a href="/search">Search another train</a>
+    </div>
+    <% if (locals.amount) { %>
+    <div class="ticket__foot">
+      <p>Fare <strong>Rs <%= (amount / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></strong> for <%= hold.passengers.length %> <%= hold.passengers.length === 1 ? 'passenger' : 'passengers' %></p>
+      <form method="post" action="/book/pay">
+        <input type="hidden" name="holdId" value="<%= hold.id %>">
+        <button class="button button--primary" type="submit" data-busy-text="Opening payment…">Pay now</button>
       </form>
     <% } %>
-  </main>
-</body>
-</html>
+    </div>
+  </article>
+
+<% } else if (run) { %>
+  <div class="page-head">
+    <h1>Book on <span translate="no"><%= run.number %></span> <%= run.name %></h1>
+    <p><%= dayText(run.run_date) %>. Up to 3 passengers on this page; berths go first, then RAC, then the waitlist.</p>
+  </div>
+
+  <%- include('partials/error', { error }) %>
+
+  <form class="panel stack" method="post" action="/book" novalidate>
+    <input type="hidden" name="runId" value="<%= run.id %>">
+    <input type="hidden" name="fromStation" value="<%= values.fromStation || '' %>">
+    <input type="hidden" name="toStation" value="<%= values.toStation || '' %>">
+    <% if (locals.passenger) { %><p class="hint">Booking as <%= passenger.name %>. Your ticket goes to your verified mobile and email.</p><% } %>
+
+    <fieldset>
+      <legend>Class</legend>
+      <div class="choices">
+        <% run.classes.forEach(function (c) { %>
+          <label class="choice">
+            <input type="radio" name="classCode" value="<%= c %>" <%= chosenClass === c ? 'checked' : '' %>>
+            <span><%= classNames[c] || c %><small translate="no"><%= c %></small></span>
+          </label>
+        <% }) %>
+      </div>
+    </fieldset>
+
+    <fieldset aria-describedby="quota-hint">
+      <legend>Quota</legend>
+      <div class="choices">
+        <label class="choice">
+          <input type="radio" name="quotaCode" value="GN" <%= chosenQuota === 'GN' ? 'checked' : '' %>>
+          <span>General</span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="quotaCode" value="TQ" <%= chosenQuota === 'TQ' ? 'checked' : '' %>>
+          <span>Tatkal</span>
+        </label>
+      </div>
+      <p class="hint" id="quota-hint">Tatkal opens at 10:00 the day before travel, with at most 4 passengers.</p>
+    </fieldset>
+
+    <% [1, 2, 3].forEach(function (n) { %>
+      <fieldset>
+        <legend>Passenger <%= n %><%= n > 1 ? ' (optional)' : '' %></legend>
+        <div class="grid-2">
+          <div class="field">
+            <label for="name<%= n %>">Full name</label>
+            <input id="name<%= n %>" type="text" name="name<%= n %>" value="<%= values['name' + n] || '' %>"
+                   autocomplete="<%= n === 1 ? 'name' : 'off' %>" spellcheck="false" <%= n === 1 ? 'required' : '' %>>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="age<%= n %>">Age</label>
+              <input id="age<%= n %>" type="number" name="age<%= n %>" value="<%= values['age' + n] || '' %>"
+                     inputmode="numeric" min="1" max="125" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="gender<%= n %>">Gender</label>
+              <select id="gender<%= n %>" name="gender<%= n %>">
+                <% ['M', 'F', 'T'].forEach(function (g) { %>
+                  <option value="<%= g %>" <%= values['gender' + n] === g ? 'selected' : '' %>><%= genderNames[g] %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+    <% }) %>
+
+
+    <div class="form-actions">
+      <button class="button button--primary" type="submit" data-busy-text="Holding berths…">Hold berths</button>
+      <a href="/search">Back to search</a>
+    </div>
+  </form>
+
+<% } else { %>
+  <div class="page-head">
+    <h1>Book berths</h1>
+  </div>
+  <%- include('partials/error', { error }) %>
+  <p><a class="button button--primary" href="/search">Search trains</a></p>
+<% } %>
+
+<%- include('partials/bottom') %>

@@ -3,6 +3,8 @@ const logger = require('../logger');
 const { AppError } = require('../errors');
 
 function notFoundHandler(req, res) {
+  // Browsers get a page; API clients (and anything that did not ask for HTML) get JSON.
+  if (req.accepts(['json', 'html']) === 'html') return res.status(404).render('not-found');
   res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Route not found' }, correlationId: req.correlationId });
 }
 

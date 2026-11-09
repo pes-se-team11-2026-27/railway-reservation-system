@@ -61,9 +61,10 @@ async function createHold(input) {
     const assigned = assignStatuses({ passengerCount: passengers.length, freeBerths: berths, ...queue });
 
     const hold = await client.query(
-      `INSERT INTO holds (run_id, class_code, quota_code, expires_at)
-       VALUES ($1, $2, $3, now() + make_interval(mins => $4)) RETURNING id, expires_at`,
-      [runId, classCode, quotaCode, minutes],
+      `INSERT INTO holds (run_id, class_code, quota_code, expires_at, from_station, to_station, user_id)
+       VALUES ($1, $2, $3, now() + make_interval(mins => $4), $5, $6, $7) RETURNING id, expires_at`,
+      [runId, classCode, quotaCode, minutes, input.fromStation || null, input.toStation || null,
+        input.userId || null],
     );
     const { id, expires_at: expiresAt } = hold.rows[0];
     await inventory.markHeld(client, {
@@ -90,6 +91,7 @@ async function createHold(input) {
 async function getHold(holdId) {
   const { rows } = await pool.query(
     `SELECT h.id, h.run_id, h.class_code, h.quota_code, h.expires_at, h.created_at,
+            h.from_station, h.to_station, h.user_id,
             CASE WHEN h.status = 'ACTIVE' AND h.expires_at <= now() THEN 'EXPIRED' ELSE h.status END AS status,
             r.run_date, t.number, t.name
        FROM holds h JOIN train_runs r ON r.id = h.run_id JOIN trains t ON t.id = r.train_id
@@ -114,6 +116,9 @@ async function getHold(holdId) {
     runDate: h.run_date,
     classCode: h.class_code,
     quotaCode: h.quota_code,
+    from: h.from_station,
+    to: h.to_station,
+    userId: h.user_id,
     expiresAt: h.expires_at,
     passengers: pax.rows.map((p) => ({
       seq: p.seq,

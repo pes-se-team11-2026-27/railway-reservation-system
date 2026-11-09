@@ -1,0 +1,77 @@
+<%
+  const rupees = (p) => 'Rs ' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const when = (d) => new Date(d).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  const stateText = { CURRENT: 'In force', SCHEDULED: 'Scheduled', PAST: 'Replaced' };
+%>
+<%- include('partials/top', { title: 'Fare rules', current: null }) %>
+  <div class="page-head">
+    <h1>Fare rules</h1>
+    <p>A new rule starts at its effective time. Bookings before then keep the rule in force when they were made. <a href="/admin">Back to the console</a></p>
+  </div>
+  <%- include('partials/error', { error }) %>
+  <% if (notice) { %><p class="note" role="status"><%= notice %></p><% } %>
+
+  <section class="panel" aria-labelledby="rules-h">
+    <h2 id="rules-h" class="section-head">All rules</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Class</th><th scope="col">State</th><th scope="col">From</th><th scope="col" class="num">Per km</th><th scope="col" class="num">Min km</th><th scope="col" class="num">Reservation</th><th scope="col" class="num">GST</th><th scope="col" class="num">Fee</th></tr></thead>
+        <tbody>
+          <% rules.forEach(function (r) { %>
+            <tr>
+              <th scope="row" translate="no"><%= r.classCode %></th>
+              <td><span class="chip <%= r.state === 'CURRENT' ? 'chip--cnf' : (r.state === 'SCHEDULED' ? 'chip--rac' : '') %>"><%= stateText[r.state] %></span></td>
+              <td><%= when(r.effectiveFrom) %></td>
+              <td class="num"><%= r.paisePerKm %> p</td>
+              <td class="num"><%= r.minKm %></td>
+              <td class="num"><%= rupees(r.reservationPaise) %></td>
+              <td class="num"><%= (r.gstBps / 100).toFixed(2) %>%</td>
+              <td class="num"><%= rupees(r.conveniencePaise) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="new-h">
+    <h2 id="new-h" class="section-head">Add a rule</h2>
+    <form method="post" action="/admin/fares" novalidate>
+      <div class="grid-2">
+        <div class="field">
+          <label for="classCode">Class</label>
+          <select id="classCode" name="classCode">
+            <% ['SL', '3A'].forEach(function (c) { %><option value="<%= c %>" <%= values.classCode === c ? 'selected' : '' %>><%= c %></option><% }) %>
+          </select>
+        </div>
+        <div class="field">
+          <label for="effectiveFrom">Starts</label>
+          <input id="effectiveFrom" type="datetime-local" name="effectiveFrom" value="<%= values.effectiveFrom || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="paisePerKm">Rate (paise per km)</label>
+          <input id="paisePerKm" type="number" name="paisePerKm" min="1" max="10000" inputmode="numeric" value="<%= values.paisePerKm || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="minKm">Minimum distance (km)</label>
+          <input id="minKm" type="number" name="minKm" min="0" max="2000" inputmode="numeric" value="<%= values.minKm || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="reservationPaise">Reservation charge (paise)</label>
+          <input id="reservationPaise" type="number" name="reservationPaise" min="0" inputmode="numeric" value="<%= values.reservationPaise || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="gstBps">GST (basis points, 500 = 5%)</label>
+          <input id="gstBps" type="number" name="gstBps" min="0" max="2800" inputmode="numeric" value="<%= values.gstBps || '' %>" required>
+        </div>
+        <div class="field">
+          <label for="conveniencePaise">Convenience fee (paise)</label>
+          <input id="conveniencePaise" type="number" name="conveniencePaise" min="0" inputmode="numeric" value="<%= values.conveniencePaise || '' %>" required>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="button button--primary" type="submit" data-busy-text="Saving…">Save rule</button>
+      </div>
+    </form>
+  </section>
+<%- include('partials/bottom') %>

@@ -3,6 +3,7 @@
 const QUOTAS = ['GN', 'TQ'];
 const GENDERS = ['M', 'F', 'T'];
 const MAX_PASSENGERS = 6;
+const STATION = /^[A-Z]{2,5}$/;
 
 // Returns a message for the first problem in a hold request, or null.
 function holdRequestProblem(input) {
@@ -21,6 +22,10 @@ function holdRequestProblem(input) {
     if (!Number.isInteger(p.age) || p.age < 1 || p.age > 125) return `Passenger ${n}: age must be 1 to 125`;
     if (!GENDERS.includes(p.gender)) return `Passenger ${n}: gender must be M, F or T`;
   }
+  // Optional: the journey, used to work out the fare.
+  const { fromStation, toStation } = input;
+  if (fromStation != null && !STATION.test(fromStation)) return 'fromStation must be a station code';
+  if (toStation != null && !STATION.test(toStation)) return 'toStation must be a station code';
   return null;
 }
 

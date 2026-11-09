@@ -10,6 +10,14 @@ router.get('/search', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+router.get('/:number/availability', async (req, res, next) => {
+  try {
+    res.json(await service.getAvailability({
+      number: req.params.number, date: req.query.date, classCode: req.query.class, quotaCode: req.query.quota || 'GN',
+    }));
+  } catch (err) { next(err); }
+});
+
 router.get('/stations', async (req, res, next) => {
   try {
     res.json(await service.listStations());
@@ -27,6 +35,10 @@ pages.get('/search', async (req, res, next) => {
     if (query.from || query.to || query.date) {
       try {
         trains = await service.searchTrains(query);
+        for (const t of trains) {
+          t.availability = {};
+          for (const c of t.classes) t.availability[c] = await service.availabilityForRun(t.runId, c, 'GN');
+        }
       } catch (err) {
         if (!err.status) throw err;
         error = err.message;

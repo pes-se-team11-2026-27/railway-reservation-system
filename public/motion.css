@@ -1,0 +1,83 @@
+/* Motion. Each rule answers a person's action or marks one rare moment.
+   Curves from Emil Kowalski's set; UI durations stay under 300ms.
+   Transform and opacity only, so nothing triggers layout. */
+
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Feedback: a button gives under the finger. Tens of times a day, so 120ms. */
+.button {
+  transition: transform 120ms var(--ease-out), background-color 150ms ease;
+}
+.button:active { transform: scale(0.97); }
+
+/* State indication: choosing a class or quota. Colour only, so it suits touch. */
+.choice span {
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+/* Hover only where a real pointer can hover; taps fire false hovers. */
+@media (hover: hover) and (pointer: fine) {
+  .site-nav a, .button--secondary, a.chip {
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+}
+
+/* Spatial consistency: the swap control turns as From and To trade places.
+   The base angle is horizontal on wide screens and vertical when stacked. */
+.swap svg { transform: rotate(var(--swap-base, 0deg)); transition: transform 200ms var(--ease-in-out); }
+.swap[data-turned="true"] svg { transform: rotate(calc(var(--swap-base, 0deg) + 180deg)); }
+
+/* The one authored moment: the held ticket arrives, then its passengers.
+   Rare (once per booking), so it may take a little longer. */
+@keyframes ticket-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.99); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes row-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.ticket { animation: ticket-in 280ms var(--ease-out) both; }
+.ticket tbody tr { animation: row-in 220ms var(--ease-out) both; }
+.ticket tbody tr:nth-child(1) { animation-delay: 120ms; }
+.ticket tbody tr:nth-child(2) { animation-delay: 170ms; }
+.ticket tbody tr:nth-child(3) { animation-delay: 220ms; }
+
+/* State indication: the hold running down. Constant motion, so linear.
+   scaleX on a full-width bar keeps it on the compositor. */
+.hold-timer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 12rem;
+}
+.hold-timer__track {
+  height: 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  overflow: hidden;
+}
+.hold-timer__bar {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left center;
+  transition: transform 1s linear;
+}
+.hold-timer[data-lapsed="true"] .hold-timer__bar { background: var(--wl-ink); }
+.hold-timer__left { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+/* Busy buttons say what is happening instead of moving. */
+.button[aria-busy="true"] { cursor: progress; opacity: 0.8; }
+
+/* Reduced motion: keep the fades that explain what changed, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .button:active { transform: none; }
+  .swap svg { transition: none; }
+  .ticket, .ticket tbody tr { animation-name: fade-in; animation-duration: 150ms; animation-delay: 0ms; }
+  .hold-timer__bar { transition: none; }
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }

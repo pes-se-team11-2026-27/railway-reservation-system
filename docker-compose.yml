@@ -20,8 +20,12 @@ services:
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/rrs
       PORT: 3000
+      NODE_ENV: development
+      TLS_ENABLED: "true"
+      HTTPS_PORT: 3443
     ports:
       - "3000:3000"
+      - "3443:3443"
     depends_on:
       db:
         condition: service_healthy

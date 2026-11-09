@@ -74,12 +74,15 @@ async function seed(client) {
     ['max_passengers_general', '6'],
     ['max_passengers_tatkal', '4'],
     ['staff_idle_minutes', '5'],
+<<<<<<< HEAD
     // Cancellation (RRS-F-015): hours before departure : share of the fare
     // kept, in basis points; under the last slab, cancellation is closed.
     ['cancel_slabs', '48:0,12:2500,4:5000'],
     ['cancel_flat_SL', '6000'],
     ['cancel_flat_3A', '18000'],
     ['cancel_clerkage', '2000'],
+=======
+>>>>>>> origin/main
   ];
   for (const [key, value] of settings) {
     await client.query('INSERT INTO settings (key, value) VALUES ($1, $2)', [key, value]);
