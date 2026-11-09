@@ -5,6 +5,7 @@ const { pool, withTransaction } = require('../../db/pool');
 const { notFound } = require('../../errors');
 const logger = require('../../logger');
 const notification = require('../notification/service');
+const refunds = require('../payment/refunds');
 const { releaseHold, getHold } = require('./service');
 
 // A PNR is 10 digits and never starts with 0.
@@ -43,7 +44,10 @@ async function settlePayment({ txRef, holdId, status }) {
     if (!pay.rows.length || pay.rows[0].status !== 'SUCCESS') return { outcome: 'NOT_PAID' };
     const existing = await client.query('SELECT pnr FROM bookings WHERE payment_tx_ref = $1', [txRef]);
     if (existing.rows.length) return { outcome: 'CONFIRMED', pnr: existing.rows[0].pnr, firstTime: false };
-    if (pay.rows[0].allocation_status === 'FAILED') return { outcome: 'ALLOCATION_FAILED' };
+    if (pay.rows[0].allocation_status === 'FAILED') {
+      const r = await client.query(`SELECT refund_ref FROM refunds WHERE tx_ref = $1 AND reason = 'ALLOCATION_FAILED'`, [txRef]);
+      return { outcome: 'ALLOCATION_FAILED', refundRef: r.rows.length ? r.rows[0].refund_ref : null };
+    }
 
     const h = await client.query(
       `SELECT h.*, h.expires_at > now() AS live,
@@ -59,7 +63,10 @@ async function settlePayment({ txRef, holdId, status }) {
         await client.query(`UPDATE inventory SET status = 'FREE', hold_id = NULL, hold_expires_at = NULL WHERE hold_id = $1 AND status = 'HELD'`, [holdId]);
         await client.query(`UPDATE holds SET status = 'EXPIRED' WHERE id = $1`, [holdId]);
       }
-      return { outcome: 'ALLOCATION_FAILED' };
+      // RRS-F-014: the full amount goes back automatically, in this same
+      // transaction, with a message to the passenger.
+      const refund = await refunds.issueRefund(client, { txRef, amountPaise: pay.rows[0].amount_paise, reason: 'ALLOCATION_FAILED' });
+      return { outcome: 'ALLOCATION_FAILED', refundRef: refund.refundRef, firstTime: true };
     }
 
     let pnr;
@@ -89,10 +96,10 @@ async function settlePayment({ txRef, holdId, status }) {
   });
 
   // Delivery happens after the commit; failures are retried from the outbox.
-  if (result.outcome === 'CONFIRMED' && result.firstTime) {
+  if (result.firstTime && (result.outcome === 'CONFIRMED' || result.outcome === 'ALLOCATION_FAILED')) {
     setImmediate(() => notification.dispatchPending().catch((err) => logger.error({ err }, 'Notification dispatch failed')));
   }
-  return { outcome: result.outcome, pnr: result.pnr, firstTime: result.firstTime };
+  return { outcome: result.outcome, pnr: result.pnr, refundRef: result.refundRef, firstTime: result.firstTime };
 }
 
 // A booking with its passengers, payment, messages and a QR code for the ticket.
