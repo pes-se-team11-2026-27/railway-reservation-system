@@ -126,7 +126,7 @@
                      const label = a.confirmedAvailable > 0 ? a.confirmedAvailable + ' available'
                        : (a.racAvailable > 0 ? 'RAC ' + a.racAvailable : 'WL ' + (a.waitlist + 1)); %>
                   <li>
-                    <a class="chip chip--<%= kind %>" href="/book?runId=<%= t.runId %>&class=<%= c %>"><%= c %>: <%= label %><span class="vh">, book <%= classNames[c] || c %></span></a>
+                    <a class="chip chip--<%= kind %>" href="/book?runId=<%= t.runId %>&class=<%= c %>&from=<%= query.from %>&to=<%= query.to %>"><%= c %>: <%= label %><span class="vh">, book <%= classNames[c] || c %></span></a>
                   </li>
                 <% }) %>
               </ul>

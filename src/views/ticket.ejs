@@ -1,0 +1,56 @@
+<%
+  const classNames = { SL: 'Sleeper', '3A': 'AC 3 tier' };
+  const quotaNames = { GN: 'General', TQ: 'Tatkal' };
+  const dayText = (d) => new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())));
+  const rupees = (p) => 'Rs ' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+%>
+<%- include('partials/top', { title: 'Ticket ' + booking.pnr, current: null }) %>
+  <div class="page-head">
+    <h1>Booking confirmed</h1>
+    <p>Your ticket has been sent by SMS and email. Show the QR code to the ticket examiner on board.</p>
+  </div>
+
+  <article class="ticket" aria-labelledby="pnr-label">
+    <div class="ticket__head">
+      <div>
+        <span class="train-no" id="pnr-label">PNR <span translate="no"><%= booking.pnr %></span></span>
+        <span class="train-name"><span translate="no"><%= booking.train.number %></span> <%= booking.train.name %></span>
+      </div>
+      <dl class="ticket__facts">
+        <div><dt>Journey</dt><dd><%= dayText(booking.runDate) %></dd></div>
+        <% if (booking.from && booking.to) { %><div><dt>Route</dt><dd translate="no"><%= booking.from %> to <%= booking.to %></dd></div><% } %>
+        <div><dt>Class</dt><dd><%= classNames[booking.classCode] || booking.classCode %></dd></div>
+        <div><dt>Quota</dt><dd><%= quotaNames[booking.quotaCode] || booking.quotaCode %></dd></div>
+        <div><dt>Paid</dt><dd><%= rupees(booking.amountPaise) %></dd></div>
+      </dl>
+    </div>
+    <div class="ticket__tear" aria-hidden="true"></div>
+    <div class="ticket__body ticket__grid">
+      <div class="table-wrap">
+        <table>
+          <caption class="vh">Passengers on PNR <%= booking.pnr %></caption>
+          <thead><tr><th scope="col">Passenger</th><th scope="col">Status</th><th scope="col" class="num">Coach and berth</th></tr></thead>
+          <tbody>
+            <% booking.passengers.forEach(function (p) { %>
+              <tr>
+                <th scope="row"><strong><%= p.name %></strong> <span class="hint"><%= p.age %></span></th>
+                <td><span class="chip chip--<%= p.status.toLowerCase() %>"><%= p.status === 'CNF' ? 'CNF' : p.status + ' ' + p.position %></span></td>
+                <td class="num"><%= p.coach ? p.coach + ' / ' + p.berth : 'Given at chart time' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <figure class="ticket__qr">
+        <%- booking.qrSvg %>
+        <figcaption>QR code for PNR <%= booking.pnr %></figcaption>
+      </figure>
+    </div>
+    <div class="ticket__foot">
+      <p>Payment reference <span translate="no"><%= booking.paymentRef %></span></p>
+      <p><% booking.messages.forEach(function (m, i) { %><%= i ? ', ' : 'Sent by ' %><%= m.channel === 'SMS' ? 'SMS to ' + m.to : 'email to ' + m.to %><%= m.sent ? '' : ' (sending)' %><% }) %></p>
+    </div>
+  </article>
+  <p style="margin-top: 1.5rem"><a href="/search">Book another journey</a></p>
+<%- include('partials/bottom') %>

@@ -36,6 +36,7 @@ function createApp() {
   // The most frequent job, finding a train, is the home page.
   // Who is signed in, if anyone (RRS-SR-003). Runs before every route.
   app.use(loadSession);
+  app.use((req, res, next) => { res.locals.auth = req.auth; next(); });
   app.get('/', (req, res) => res.redirect('/search'));
   app.use('/health', healthRoutes);
   mountModules(app);

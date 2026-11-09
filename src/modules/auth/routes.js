@@ -79,6 +79,52 @@ pages.post('/staff/logout', async (req, res) => {
   res.redirect('/staff/login');
 });
 
+// Passenger sign in page (UC-01, UC-03). An account whose mobile is not yet
+// verified gets its code here and verifies in place (RRS-F-002), then goes
+// back to where it was going.
+const account = require('../account/service');
+
+// Only a path on this site: never another host, so the link cannot be used
+// to send someone to a look-alike site after signing in.
+function safeNext(value) {
+  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : '/search';
+}
+
+pages.get('/signin', (req, res) => {
+  res.render('signin', { step: 'password', error: null, devCode: null, next: safeNext(req.query.next), values: {} });
+});
+
+pages.post('/signin', async (req, res) => {
+  const next = safeNext(req.body.next);
+  try {
+    const who = await login({ mobile: req.body.mobile, password: req.body.password });
+    const token = await session.createSession({ kind: 'PASSENGER', userId: who.id, role: 'PASSENGER', mfaPassed: true });
+    session.setCookie(req, res, token);
+    if (who.mobileVerified) return res.redirect(303, next);
+    const { code } = await account.issueOtp(who.id);
+    res.render('signin', { step: 'code', error: null, devCode: showDevCode ? code : null, next, values: {} });
+  } catch (err) {
+    res.status(err.status || 500).render('signin', { step: 'password', error: err.message, devCode: null, next, values: { mobile: req.body.mobile } });
+  }
+});
+
+pages.post('/signin/verify', async (req, res) => {
+  const next = safeNext(req.body.next);
+  if (!req.auth || req.auth.kind !== 'PASSENGER') return res.redirect(303, `/signin?next=${encodeURIComponent(next)}`);
+  try {
+    await account.verifyOtp(req.auth.userId, String(req.body.code || '').trim());
+    res.redirect(303, next);
+  } catch (err) {
+    res.status(err.status || 500).render('signin', { step: 'code', error: err.message, devCode: null, next, values: {} });
+  }
+});
+
+pages.post('/signout', async (req, res) => {
+  await session.revoke(req.auth && req.auth.token);
+  session.clearCookie(res);
+  res.redirect(303, '/search');
+});
+
 // Turns a failed guard into a page: sign in again, or a plain refusal.
 function pageGuard(...roles) {
   const guard = session.requireRole(...roles);
