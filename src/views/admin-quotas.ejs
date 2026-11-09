@@ -1,0 +1,55 @@
+<%
+  const when = (d) => new Date(d).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+%>
+<%- include('partials/top', { title: 'Quota rules', current: null }) %>
+  <div class="page-head">
+    <h1>Quota rules</h1>
+    <p>Tatkal opening time and passenger limits. A change starts at its effective time. <a href="/admin">Back to the console</a></p>
+  </div>
+  <%- include('partials/error', { error }) %>
+  <% if (notice) { %><p class="note" role="status"><%= notice %></p><% } %>
+
+  <section class="panel" aria-labelledby="q-h">
+    <h2 id="q-h" class="section-head">Rules in force</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Rule</th><th scope="col">Now</th><th scope="col">Scheduled changes</th></tr></thead>
+        <tbody>
+          <% rules.forEach(function (r) { %>
+            <tr>
+              <th scope="row"><%= r.label %></th>
+              <td><strong><%= r.current %></strong></td>
+              <td><%= r.scheduled.length ? r.scheduled.map(function (s) { return s.value + ' from ' + when(s.effectiveFrom); }).join('; ') : 'None' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="qn-h">
+    <h2 id="qn-h" class="section-head">Schedule a change</h2>
+    <form method="post" action="/admin/quotas" novalidate>
+      <div class="grid-2">
+        <div class="field">
+          <label for="key">Rule</label>
+          <select id="key" name="key">
+            <% rules.forEach(function (r) { %><option value="<%= r.key %>" <%= values.key === r.key ? 'selected' : '' %>><%= r.label %></option><% }) %>
+          </select>
+        </div>
+        <div class="field">
+          <label for="value">New value</label>
+          <input id="value" type="text" name="value" value="<%= values.value || '' %>" aria-describedby="value-hint" required>
+          <p class="hint" id="value-hint">Time as HH:MM, or a number of passengers.</p>
+        </div>
+        <div class="field">
+          <label for="effectiveFrom">Starts</label>
+          <input id="effectiveFrom" type="datetime-local" name="effectiveFrom" value="<%= values.effectiveFrom || '' %>" required>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="button button--primary" type="submit" data-busy-text="Saving…">Save change</button>
+      </div>
+    </form>
+  </section>
+<%- include('partials/bottom') %>

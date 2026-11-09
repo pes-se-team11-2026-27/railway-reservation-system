@@ -1,10 +1,14 @@
 <%- include('partials/top', { title: 'Administration', current: null }) %>
   <div class="page-head">
     <h1>Administration console</h1>
-    <p>Signed in as <%= auth.name %>. Schedules, quotas, fare rules and the audit log are managed here.</p>
+    <p>Signed in as <%= auth.name %>. Changes take effect at the time you choose, and each one is recorded in the audit log.</p>
   </div>
   <section class="panel narrow">
-    <p>Only reservation administrators can open this page. Fare and quota rules arrive here in Sprint 2 (RRS-F-019).</p>
+    <ul>
+      <li><a href="/admin/fares">Fare rules</a>: rates, minimum distance, reservation charge, GST and fee per class</li>
+      <li><a href="/admin/quotas">Quota rules</a>: Tatkal opening time and passenger limits</li>
+      <li><a href="/admin/audit">Audit log</a>: every privileged action, by person and date</li>
+    </ul>
   </section>
   <form method="post" action="/staff/logout" style="margin-top: 1.5rem">
     <button class="button button--secondary" type="submit">Sign out</button>

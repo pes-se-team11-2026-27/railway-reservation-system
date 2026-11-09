@@ -1,0 +1,72 @@
+<%
+  const when = (d) => new Date(d).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'medium' });
+  // Plain words for the details: what changed from what to what, and from when.
+  const summary = (d) => {
+    if (!d || typeof d !== 'object') return '';
+    const parts = [];
+    if (d.after && typeof d.after === 'object') {
+      const before = d.before || {};
+      Object.keys(d.after).forEach(function (k) {
+        if (before[k] !== d.after[k]) parts.push(k.replace(/_/g, ' ') + ' ' + (before[k] == null ? 'new' : before[k]) + ' to ' + d.after[k]);
+      });
+    } else if ('after' in d) {
+      parts.push((d.before == null ? 'new' : d.before) + ' to ' + d.after);
+    }
+    if (d.effectiveFrom) parts.push('from ' + new Date(d.effectiveFrom).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }));
+    Object.keys(d).filter(function (k) { return ['before', 'after', 'effectiveFrom'].indexOf(k) < 0; })
+      .forEach(function (k) { parts.push(k + ': ' + (typeof d[k] === 'object' ? JSON.stringify(d[k]) : d[k])); });
+    return parts.join('; ');
+  };
+%>
+<%- include('partials/top', { title: 'Audit log', current: null }) %>
+  <div class="page-head">
+    <h1>Audit log</h1>
+    <p>Every privileged action, newest first. Entries cannot be edited or deleted. <a href="/admin">Back to the console</a></p>
+  </div>
+  <%- include('partials/error', { error }) %>
+
+  <form class="panel" method="get" action="/admin/audit">
+    <div class="grid-2">
+      <div class="field">
+        <label for="actor">Staff username</label>
+        <input id="actor" type="text" name="actor" value="<%= filters.actor %>" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="action">Action</label>
+        <select id="action" name="action">
+          <option value="">All actions</option>
+          <% actions.forEach(function (a) { %><option value="<%= a %>" <%= filters.action === a ? 'selected' : '' %>><%= a %></option><% }) %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="from">From date</label>
+        <input id="from" type="date" name="from" value="<%= filters.from %>">
+      </div>
+      <div class="field">
+        <label for="to">To date</label>
+        <input id="to" type="date" name="to" value="<%= filters.to %>">
+      </div>
+    </div>
+    <div class="form-actions"><button class="button button--secondary" type="submit">Filter</button></div>
+  </form>
+
+  <section class="panel" aria-labelledby="log-h">
+    <h2 id="log-h" class="section-head"><%= entries.length %> <%= entries.length === 1 ? 'entry' : 'entries' %></h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">When</th><th scope="col">Who</th><th scope="col">Action</th><th scope="col">Target</th><th scope="col">Details</th></tr></thead>
+        <tbody>
+          <% entries.forEach(function (e) { %>
+            <tr>
+              <td><%= when(e.at) %></td>
+              <th scope="row" translate="no"><%= e.actor %></th>
+              <td><%= e.action %></td>
+              <td><%= e.target %></td>
+              <td><%= summary(e.details) || 'None' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<%- include('partials/bottom') %>
