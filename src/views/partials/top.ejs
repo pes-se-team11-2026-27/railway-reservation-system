@@ -31,6 +31,7 @@
         <ul>
           <li><a href="/search"<% if (locals.current === 'search') { %> aria-current="page"<% } %>>Search trains</a></li>
           <li><a href="/fare"<% if (locals.current === 'fare') { %> aria-current="page"<% } %>>Check a fare</a></li>
+          <li><a href="/pnr"<% if (locals.current === 'pnr') { %> aria-current="page"<% } %>>PNR status</a></li>
           <% if (locals.auth && auth.kind === 'PASSENGER') { %>
             <li><form method="post" action="/signout" class="nav-form"><button type="submit" class="nav-button">Sign out <span class="vh"><%= auth.name %></span></button></form></li>
           <% } else { %>

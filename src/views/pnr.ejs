@@ -1,0 +1,33 @@
+<%- include('partials/top', { title: 'PNR status', current: 'pnr' }) %>
+  <div class="page-head">
+    <h1>PNR status</h1>
+    <p>Check a booking's status without signing in. Only passenger initials are shown, to protect privacy.</p>
+  </div>
+  <%- include('partials/error', { error }) %>
+
+  <form class="panel narrow" method="get" action="/pnr" novalidate>
+    <div class="field">
+      <label for="number">PNR number</label>
+      <input id="number" type="text" name="number" value="<%= number %>" inputmode="numeric" maxlength="10" autocomplete="off" spellcheck="false" aria-describedby="number-hint" required>
+      <p class="hint" id="number-hint">10 digits, from your ticket.</p>
+    </div>
+    <div class="form-actions"><button class="button button--primary" type="submit" data-busy-text="Checking…">Check status</button></div>
+  </form>
+
+  <% if (result) { %>
+    <section class="panel" aria-labelledby="res-h" style="margin-top: 1.5rem">
+      <h2 id="res-h" class="section-head">PNR <span translate="no"><%= result.pnr %></span>: <%= result.bookingStatus === 'CONFIRMED' ? 'Booked' : 'Cancelled' %></h2>
+      <p><span translate="no"><%= result.train.number %></span> <%= result.train.name %>, <%= result.journeyDate %>, class <%= result.classCode %><%= result.from ? ', ' + result.from + ' to ' + result.to : '' %></p>
+      <div class="table-wrap" style="margin-top: 1rem">
+        <table>
+          <thead><tr><th scope="col">Passenger</th><th scope="col">Status</th><th scope="col" class="num">Coach and berth</th></tr></thead>
+          <tbody>
+            <% result.passengers.forEach(function (p) { %>
+              <tr><th scope="row"><%= p.passenger %>. <%= p.initials %></th><td><%= p.status %></td><td class="num"><%= p.berth || 'Given at chart time' %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% } %>
+<%- include('partials/bottom') %>
