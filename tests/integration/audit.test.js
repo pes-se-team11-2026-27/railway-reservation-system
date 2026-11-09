@@ -3,9 +3,13 @@ const request = require('supertest');
 const { createApp } = require('../../src/app');
 const { pool } = require('../../src/db/pool');
 const audit = require('../../src/modules/audit/service');
+const { signInStaff } = require('../helpers/staff');
 
 const app = createApp();
 afterAll(() => pool.end());
+
+let admin;
+beforeAll(async () => { admin = await signInStaff(app, 'admin1'); });
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -14,7 +18,7 @@ describe('TC-ADM-02 append only audit log', () => {
     for (const action of audit.ACTIONS) {
       await audit.record({ actor: 'admin1', action, target: `${action.toLowerCase()}-target`, details: { note: 'test' } });
     }
-    const res = await request(app).get('/api/audit').query({ actor: 'admin1' });
+    const res = await admin.get('/api/audit').query({ actor: 'admin1' });
     expect(res.status).toBe(200);
     const actions = res.body.map((e) => e.action);
     for (const a of audit.ACTIONS) expect(actions).toContain(a);
@@ -27,12 +31,12 @@ describe('TC-ADM-02 append only audit log', () => {
 
   test('the log can be filtered by user and by date', async () => {
     await audit.record({ actor: 'clerk7', action: 'CLERK_OVERRIDE', target: 'hold 5' });
-    const byUser = await request(app).get('/api/audit').query({ actor: 'clerk7' });
+    const byUser = await admin.get('/api/audit').query({ actor: 'clerk7' });
     expect(byUser.body.every((e) => e.actor === 'clerk7')).toBe(true);
     expect(byUser.body.length).toBeGreaterThanOrEqual(1);
-    const byDate = await request(app).get('/api/audit').query({ actor: 'clerk7', from: today, to: today });
+    const byDate = await admin.get('/api/audit').query({ actor: 'clerk7', from: today, to: today });
     expect(byDate.body.length).toBeGreaterThanOrEqual(1);
-    const past = await request(app).get('/api/audit').query({ actor: 'clerk7', from: '2000-01-01', to: '2000-01-02' });
+    const past = await admin.get('/api/audit').query({ actor: 'clerk7', from: '2000-01-01', to: '2000-01-02' });
     expect(past.body).toEqual([]);
   });
 
@@ -64,7 +68,14 @@ describe('TC-ADM-02 append only audit log', () => {
   test('unknown actions, missing fields and bad dates are refused (error cases)', async () => {
     await expect(audit.record({ actor: 'admin1', action: 'DROP_TABLES', target: 'x' })).rejects.toThrow(/action must be/);
     await expect(audit.record({ actor: '', action: 'FARE_CHANGE', target: 'x' })).rejects.toThrow(/actor/);
-    expect((await request(app).get('/api/audit').query({ from: '01-11-2026' })).status).toBe(400);
-    expect((await request(app).get('/api/audit').query({ action: 'NOPE' })).status).toBe(400);
+    expect((await admin.get('/api/audit').query({ from: '01-11-2026' })).status).toBe(400);
+    expect((await admin.get('/api/audit').query({ action: 'NOPE' })).status).toBe(400);
+  });
+
+  test('only an administrator can read the log (RRS-SR-003)', async () => {
+    expect((await request(app).get('/api/audit')).status).toBe(401);
+    const clerk = await signInStaff(app, 'clerk1');
+    expect((await clerk.get('/api/audit')).status).toBe(403);
+    expect((await admin.get('/api/audit')).status).toBe(200);
   });
 });
