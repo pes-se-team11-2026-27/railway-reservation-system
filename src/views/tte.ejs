@@ -1,0 +1,36 @@
+<%- include('partials/top', { title: 'Ticket check', current: null }) %>
+  <div class="page-head">
+    <h1>Ticket check</h1>
+    <p>Download the chart while you have network. After that, tickets are checked on this device, with no network needed.</p>
+    <p><span id="net" class="chip" role="status" aria-live="polite">Online</span></p>
+  </div>
+
+  <section class="panel" aria-labelledby="dl-h">
+    <h2 id="dl-h" class="section-head">1. Chart</h2>
+    <div class="field">
+      <label for="run">Train</label>
+      <select id="run"></select>
+    </div>
+    <div class="form-actions"><button id="download" class="button button--secondary" type="button">Download chart</button></div>
+    <p id="chart-state" class="hint" role="status" aria-live="polite" style="margin-top: 0.75rem"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="chk-h" style="margin-top: 1.5rem">
+    <h2 id="chk-h" class="section-head">2. Check a ticket</h2>
+    <div class="form-actions" style="margin-top: 0"><button id="scan" class="button button--primary" type="button">Scan QR</button></div>
+    <div id="reader" class="tte-reader"></div>
+    <form id="check-form" novalidate style="margin-top: 1rem">
+      <div class="field">
+        <label for="pnr">Or type the PNR</label>
+        <input id="pnr" type="text" inputmode="numeric" maxlength="10" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="form-actions"><button class="button button--secondary" type="submit">Check</button></div>
+    </form>
+  </section>
+
+  <div id="result" class="panel result" role="status" aria-live="assertive" hidden style="margin-top: 1.5rem"></div>
+
+  <script src="/vendor/html5-qrcode.min.js" defer></script>
+  <script src="/handheld/verify.js" defer></script>
+  <script src="/handheld/app.js" defer></script>
+<%- include('partials/bottom') %>

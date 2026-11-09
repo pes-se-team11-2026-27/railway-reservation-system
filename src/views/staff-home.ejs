@@ -17,6 +17,7 @@
       <ul>
         <li><a href="/search">Book for a passenger</a></li>
         <% if (auth.role === 'ADMIN') { %><li><a href="/admin">Administration console</a></li><% } %>
+        <% if (auth.role === 'TTE' || auth.role === 'ADMIN') { %><li><a href="/tte">Ticket check (handheld)</a></li><% } %>
       </ul>
     </section>
   <% } %>
