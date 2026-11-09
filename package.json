@@ -15,6 +15,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest --selectProjects unit",
     "test:integration": "jest --selectProjects integration --runInBand",
+    "scan:card-data": "node scripts/scan-card-data.js --backup",
     "test:coverage": "jest --runInBand --coverage"
   },
   "jest": {
