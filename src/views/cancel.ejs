@@ -1,0 +1,52 @@
+<%
+  const rupees = (p) => 'Rs ' + (p / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const statusText = (l) => l.status === 'WL' ? 'Waitlisted' : (l.status === 'RAC' ? 'RAC' : 'Confirmed');
+%>
+<%- include('partials/top', { title: result ? 'Ticket cancelled' : 'Cancel ticket', current: null }) %>
+  <% if (error) { %>
+    <div class="page-head"><h1>Cannot cancel</h1></div>
+    <%- include('partials/error', { error }) %>
+    <p><a href="/search">Search trains</a></p>
+  <% } else if (result) { %>
+    <div class="page-head">
+      <h1>Ticket cancelled</h1>
+      <p>PNR <span translate="no"><%= result.pnr %></span> is cancelled and its berths have gone back to the queue.</p>
+    </div>
+    <section class="panel narrow">
+      <% if (result.refundRef) { %>
+        <p>Refund <strong translate="no"><%= result.refundRef %></strong> of <strong><%= rupees(result.refundPaise) %></strong> has been started. It reaches your account in 5 to 7 working days. We have sent you the details by SMS and email.</p>
+      <% } else { %>
+        <p>Nothing is refundable for this booking.</p>
+      <% } %>
+    </section>
+    <p style="margin-top: 1.5rem"><a href="/search">Book another journey</a></p>
+  <% } else { %>
+    <div class="page-head">
+      <h1>Cancel ticket</h1>
+      <p>PNR <span translate="no"><%= quote.pnr %></span>. Cancellation closes <%= quote.cutoffHours %> hours before departure. The convenience fee is not refunded.</p>
+    </div>
+    <% if (!quote.canCancel) { %>
+      <%- include('partials/error', { error: quote.reason }) %>
+    <% } else { %>
+      <section class="panel" aria-labelledby="q-h">
+        <h2 id="q-h" class="section-head">You get back <%= rupees(quote.refundPaise) %></h2>
+        <div class="table-wrap">
+          <table>
+            <caption>About <%= quote.hoursBefore %> hours before departure. Paid <%= rupees(quote.paidPaise) %>, of which <%= rupees(quote.convenienceFeePaise) %> convenience fee.</caption>
+            <thead><tr><th scope="col">Passenger</th><th scope="col">Status</th><th scope="col" class="num">Fare</th><th scope="col" class="num">Charge</th><th scope="col" class="num">Refund</th></tr></thead>
+            <tbody>
+              <% quote.lines.forEach(function (l) { %>
+                <tr><th scope="row"><%= l.seq %></th><td><%= statusText(l) %></td><td class="num"><%= rupees(l.farePaise) %></td><td class="num"><%= rupees(l.deductionPaise) %></td><td class="num"><%= rupees(l.refundPaise) %></td></tr>
+              <% }) %>
+            </tbody>
+            <tfoot><tr><th scope="row" colspan="4">Total refund</th><td class="num"><%= rupees(quote.refundPaise) %></td></tr></tfoot>
+          </table>
+        </div>
+        <form method="post" action="/ticket/<%= quote.pnr %>/cancel" class="form-actions">
+          <button class="button button--primary" type="submit" data-busy-text="Cancelling…">Cancel this ticket</button>
+          <a href="/ticket/<%= quote.pnr %>">Keep my ticket</a>
+        </form>
+      </section>
+    <% } %>
+  <% } %>
+<%- include('partials/bottom') %>

@@ -7,8 +7,13 @@
 %>
 <%- include('partials/top', { title: 'Ticket ' + booking.pnr, current: null }) %>
   <div class="page-head">
-    <h1>Booking confirmed</h1>
-    <p>Your ticket has been sent by SMS and email. Show the QR code to the ticket examiner on board.</p>
+    <% if (booking.status === 'CANCELLED') { %>
+      <h1>Booking cancelled</h1>
+      <p>This ticket is no longer valid for travel.</p>
+    <% } else { %>
+      <h1>Booking confirmed</h1>
+      <p>Your ticket has been sent by SMS and email. Show the QR code to the ticket examiner on board.</p>
+    <% } %>
   </div>
 
   <article class="ticket" aria-labelledby="pnr-label">
@@ -52,5 +57,8 @@
       <p><% booking.messages.forEach(function (m, i) { %><%= i ? ', ' : 'Sent by ' %><%= m.channel === 'SMS' ? 'SMS to ' + m.to : 'email to ' + m.to %><%= m.sent ? '' : ' (sending)' %><% }) %></p>
     </div>
   </article>
-  <p style="margin-top: 1.5rem"><a href="/search">Book another journey</a></p>
+  <p style="margin-top: 1.5rem">
+    <a href="/search">Book another journey</a>
+    <% if (booking.status === 'CONFIRMED') { %> &nbsp; <a href="/ticket/<%= booking.pnr %>/cancel">Cancel ticket</a><% } %>
+  </p>
 <%- include('partials/bottom') %>
