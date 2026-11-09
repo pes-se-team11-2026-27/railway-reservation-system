@@ -7,6 +7,7 @@ const logger = require('./logger');
 const { releaseExpiredHolds } = require('./modules/booking/service');
 const { tlsOptions, redirectHandler, withHsts } = require('./tls');
 const { dispatchPending } = require('./modules/notification/service');
+const { prepareDueCharts } = require('./modules/chart/service');
 
 const app = createApp();
 
@@ -25,6 +26,13 @@ setInterval(() => {
   releaseExpiredHolds()
     .then((n) => { if (n) logger.info({ released: n }, 'Expired holds released'); })
     .catch((err) => logger.error({ err }, 'Expired hold sweep failed'));
+}, 60000).unref();
+
+// Prepare charts whose time has come, once a minute (RRS-F-017).
+setInterval(() => {
+  prepareDueCharts()
+    .then((done) => { if (done.length) logger.info({ runs: done.map((d) => d.runId) }, 'Charts prepared'); })
+    .catch((err) => logger.error({ err }, 'Chart preparation failed'));
 }, 60000).unref();
 
 // Send anything waiting in the notification outbox every 30 seconds, so a

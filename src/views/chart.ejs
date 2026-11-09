@@ -1,0 +1,24 @@
+<%- include('partials/top', { title: 'Chart ' + chart.train.number, current: null }) %>
+  <div class="page-head">
+    <h1>Chart: <span translate="no"><%= chart.train.number %></span> <%= chart.train.name %>, <%= chart.runDate %></h1>
+    <p><%= chart.chartPrepared ? 'Prepared ' + new Date(chart.chartedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) + '.' : 'Not prepared yet: this is the current list.' %></p>
+  </div>
+  <section class="panel">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">PNR</th><th scope="col">Passenger</th><th scope="col">Age</th><th scope="col">Status</th><th scope="col">Berth</th></tr></thead>
+        <tbody>
+          <% chart.bookings.forEach(function (b) { b.passengers.forEach(function (p) { %>
+            <tr>
+              <td translate="no"><%= b.pnr %><%= b.status === 'CANCELLED' ? ' (cancelled)' : '' %></td>
+              <th scope="row"><%= p.name %></th>
+              <td><%= p.age %></td>
+              <td><%= p.status === 'NOT_ON_CHART' ? 'Not on chart, refunded' : (p.status === 'CNF' ? 'Confirmed' : p.status + ' ' + p.position) %></td>
+              <td><%= p.berth || '' %></td>
+            </tr>
+          <% }) }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<%- include('partials/bottom') %>
