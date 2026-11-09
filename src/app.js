@@ -5,6 +5,7 @@ const express = require('express');
 const correlationId = require('./middleware/correlationId');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const healthRoutes = require('./routes/health');
+const { loadSession } = require('./modules/auth/session');
 
 // Every folder in src/modules that has a routes.js is mounted automatically.
 // routes.js exports { basePath, router } and optionally { pages } for HTML pages.
@@ -33,6 +34,8 @@ function createApp() {
   app.use(express.static(path.join(__dirname, '..', 'public')));
 
   // The most frequent job, finding a train, is the home page.
+  // Who is signed in, if anyone (RRS-SR-003). Runs before every route.
+  app.use(loadSession);
   app.get('/', (req, res) => res.redirect('/search'));
   app.use('/health', healthRoutes);
   mountModules(app);

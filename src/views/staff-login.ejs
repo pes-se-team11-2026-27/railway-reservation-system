@@ -1,0 +1,38 @@
+<%- include('partials/top', { title: step === 'code' ? 'Enter your code' : 'Staff sign in', current: null }) %>
+  <div class="page-head">
+    <h1><%= step === 'code' ? 'Enter your code' : 'Staff sign in' %></h1>
+    <p><%= step === 'code' ? 'Open your authenticator app and enter the 6 digit code for Railway Reservation.' : 'For booking clerks, administrators and ticket examiners.' %></p>
+  </div>
+
+  <% if (locked) { %><p class="note narrow" role="status">You were signed out after 5 minutes without activity. Sign in again.</p><% } %>
+  <%- include('partials/error', { error }) %>
+
+  <% if (step === 'password') { %>
+    <form class="panel narrow" method="post" action="/staff/login" novalidate>
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" type="text" name="username" autocomplete="username" spellcheck="false" autocapitalize="off" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" autocomplete="current-password" required>
+      </div>
+      <div class="form-actions">
+        <button class="button button--primary" type="submit" data-busy-text="Checking…">Continue</button>
+      </div>
+    </form>
+  <% } else { %>
+    <% if (devCode) { %>
+      <p class="note narrow" role="status">Test mode. The code your authenticator app shows right now is <span class="code"><%= devCode %></span></p>
+    <% } %>
+    <form class="panel narrow" method="post" action="/staff/verify" novalidate style="margin-top: 1rem">
+      <div class="field">
+        <label for="code">Authenticator code</label>
+        <input id="code" type="text" name="code" autocomplete="one-time-code" inputmode="numeric" maxlength="6" spellcheck="false" required>
+      </div>
+      <div class="form-actions">
+        <button class="button button--primary" type="submit" data-busy-text="Checking code…">Sign in</button>
+      </div>
+    </form>
+  <% } %>
+<%- include('partials/bottom') %>

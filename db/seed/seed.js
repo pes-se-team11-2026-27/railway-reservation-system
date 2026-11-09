@@ -73,15 +73,38 @@ async function seed(client) {
     ['chart_hours_before', '4'],
     ['max_passengers_general', '6'],
     ['max_passengers_tatkal', '4'],
+    ['staff_idle_minutes', '5'],
   ];
   for (const [key, value] of settings) {
     await client.query('INSERT INTO settings (key, value) VALUES ($1, $2)', [key, value]);
+  }
+  await seedStaff(client);
+}
+
+// Demo staff, one per role (RRS-SR-003). Development and demo only: the
+// passwords and authenticator secrets below are published in the README.
+const STAFF = [
+  ['admin1', 'Asha Admin', 'ADMIN', 'Admin@2026', 'JBSWY3DPEHPK3PXP'],
+  ['clerk1', 'Kiran Clerk', 'CLERK', 'Clerk@2026', 'KRSXG5CTMVRXEZLU'],
+  ['tte1', 'Tara Examiner', 'TTE', 'Tte@2026', 'ORUGS4ZANFZSAYJA'],
+];
+
+async function seedStaff(client) {
+  const { hashPassword } = require('../../src/modules/auth/password');
+  for (const [username, name, role, password, secret] of STAFF) {
+    await client.query(
+      `INSERT INTO staff (username, name, role, password_hash, totp_secret)
+       VALUES ($1, $2, $3, $4, $5) ON CONFLICT (username) DO NOTHING`,
+      [username, name, role, await hashPassword(password), secret]);
   }
 }
 
 async function seedIfEmpty(client) {
   const { rows } = await client.query('SELECT count(*)::int AS n FROM trains');
-  if (rows[0].n > 0) return false;
+  if (rows[0].n > 0) {
+    await seedStaff(client);   // databases seeded before staff existed get them too
+    return false;
+  }
   await seed(client);
   return true;
 }
