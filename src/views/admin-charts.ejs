@@ -1,0 +1,30 @@
+<%- include('partials/top', { title: 'Charts', current: null }) %>
+  <div class="page-head">
+    <h1>Charts</h1>
+    <p>Charts are prepared automatically 4 hours before departure. You can prepare one early; that is recorded in the audit log. <a href="/admin">Back to the console</a></p>
+  </div>
+  <% if (notice) { %><p class="note" role="status"><%= notice %></p><% } %>
+  <section class="panel">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Date</th><th scope="col">Train</th><th scope="col">Chart</th><th scope="col"></th></tr></thead>
+        <tbody>
+          <% runs.forEach(function (r) { %>
+            <tr>
+              <td><%= r.run_date %></td>
+              <th scope="row"><span translate="no"><%= r.number %></span> <%= r.name %></th>
+              <td><%= r.chart_prepared ? 'Prepared' : 'Not yet' %></td>
+              <td>
+                <% if (r.chart_prepared) { %>
+                  <a href="/chart/<%= r.id %>">View chart</a>
+                <% } else { %>
+                  <form method="post" action="/admin/charts/<%= r.id %>/prepare"><button class="button button--secondary" type="submit">Prepare now</button></form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+<%- include('partials/bottom') %>
