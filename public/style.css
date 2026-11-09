@@ -541,3 +541,12 @@ tfoot th, tfoot td { border-bottom: 0; font-weight: 700; font-size: var(--fs-20)
   .ticket__grid { grid-template-columns: minmax(0, 1fr); }
   .ticket__qr { margin: 0 auto; }
 }
+
+/* ---------- handheld ticket check ---------- */
+.tte-reader { max-width: 22rem; margin-top: var(--space-3); }
+.result h2 { font-size: var(--fs-28); }
+.result--ok { border: 2px solid var(--cnf-ink); background: var(--cnf-bg); }
+.result--ok h2 { color: var(--cnf-ink); }
+.result--bad { border: 2px solid var(--wl-ink); background: var(--wl-bg); }
+.result--bad h2 { color: var(--wl-ink); }
+.result__list { margin: var(--space-3) 0 0; padding-left: var(--space-5); }
