@@ -6,6 +6,7 @@ const { config } = require('./config');
 const logger = require('./logger');
 const { releaseExpiredHolds } = require('./modules/booking/service');
 const { tlsOptions, redirectHandler, withHsts } = require('./tls');
+const { dispatchPending } = require('./modules/notification/service');
 
 const app = createApp();
 
@@ -25,3 +26,11 @@ setInterval(() => {
     .then((n) => { if (n) logger.info({ released: n }, 'Expired holds released'); })
     .catch((err) => logger.error({ err }, 'Expired hold sweep failed'));
 }, 60000).unref();
+
+// Send anything waiting in the notification outbox every 30 seconds, so a
+// message that failed earlier is retried even if nothing else happens (ADR-03).
+setInterval(() => {
+  dispatchPending()
+    .then((n) => { if (n) logger.info({ sent: n }, 'Queued notifications sent'); })
+    .catch((err) => logger.error({ err }, 'Notification dispatch failed'));
+}, 30000).unref();

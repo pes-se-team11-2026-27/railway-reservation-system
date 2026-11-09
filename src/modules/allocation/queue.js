@@ -1,7 +1,7 @@
 'use strict';
 
 // Reads the current RAC and waitlist state for a run and class from active
-// holds. Called inside the booking transaction after the queue lock.
+// holds and confirmed bookings (a paid RAC or waitlist place stays taken). Called inside the booking transaction after the queue lock.
 async function queueState(client, { runId, classCode, quotaCode }) {
   const { rows } = await client.query(
     `SELECT
@@ -11,7 +11,8 @@ async function queueState(client, { runId, classCode, quotaCode }) {
        coalesce(max(p.position) FILTER (WHERE p.status = 'RAC'), 0)::int AS last_rac,
        coalesce(max(p.position) FILTER (WHERE p.status = 'WL' AND h.quota_code = $3), 0)::int AS last_wl
      FROM holds h JOIN hold_passengers p ON p.hold_id = h.id
-     WHERE h.run_id = $1 AND h.class_code = $2 AND h.status = 'ACTIVE' AND h.expires_at > now()`,
+     WHERE h.run_id = $1 AND h.class_code = $2
+       AND (h.status = 'CONFIRMED' OR (h.status = 'ACTIVE' AND h.expires_at > now()))`,
     [runId, classCode, quotaCode],
   );
   const r = rows[0];

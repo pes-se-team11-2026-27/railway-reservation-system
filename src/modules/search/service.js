@@ -80,10 +80,10 @@ async function availabilityForRun(runId, classCode, quotaCode) {
          WHERE r.id = $1 AND rc.class_code = $2) AS rac_capacity,
        (SELECT count(*)::int FROM holds h JOIN hold_passengers p ON p.hold_id = h.id
          WHERE h.run_id = $1 AND h.class_code = $2 AND p.status = 'RAC'
-           AND h.status = 'ACTIVE' AND h.expires_at > now()) AS rac_taken,
+           AND (h.status = 'CONFIRMED' OR (h.status = 'ACTIVE' AND h.expires_at > now()))) AS rac_taken,
        (SELECT count(*)::int FROM holds h JOIN hold_passengers p ON p.hold_id = h.id
          WHERE h.run_id = $1 AND h.class_code = $2 AND h.quota_code = $3 AND p.status = 'WL'
-           AND h.status = 'ACTIVE' AND h.expires_at > now()) AS waitlist`,
+           AND (h.status = 'CONFIRMED' OR (h.status = 'ACTIVE' AND h.expires_at > now()))) AS waitlist`,
     [runId, classCode, quotaCode]);
   const r = rows[0];
   return {

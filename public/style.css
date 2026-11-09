@@ -193,6 +193,19 @@ a:hover { text-decoration-thickness: 2px; }
   text-decoration: none;
 }
 .site-nav a:hover { color: var(--ink); background: var(--line-soft); }
+.nav-form { margin: 0; }
+.nav-button {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-h);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-s);
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.nav-button:hover { color: var(--ink); background: var(--line-soft); }
 .site-nav a[aria-current="page"] {
   color: var(--ink);
   font-weight: 700;
@@ -517,4 +530,14 @@ tfoot th, tfoot td { border-bottom: 0; font-weight: 700; font-size: var(--fs-20)
   .search-form .button { width: 100%; }
   h1 { font-size: 1.5rem; }
   .panel { padding: var(--space-4); }
+}
+
+/* ---------- confirmed ticket with QR ---------- */
+.ticket__grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-5); align-items: start; }
+.ticket__qr { margin: 0; width: 9.5rem; text-align: center; }
+.ticket__qr svg { width: 100%; height: auto; display: block; background: #ffffff; border-radius: var(--radius-s); padding: 4px; }
+.ticket__qr figcaption { margin-top: var(--space-2); color: var(--ink-3); font-size: var(--fs-12); }
+@media (max-width: 34rem) {
+  .ticket__grid { grid-template-columns: minmax(0, 1fr); }
+  .ticket__qr { margin: 0 auto; }
 }
