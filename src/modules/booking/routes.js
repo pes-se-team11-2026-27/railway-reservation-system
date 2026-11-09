@@ -113,7 +113,7 @@ pages.get('/payment/return/:txRef', passengerPage, async (req, res, next) => {
     if (p.status === 'PENDING') return res.render('payment-return', { payment: p, outcome: 'PENDING', message: null });
     const settled = await settlePayment({ txRef: p.txRef, holdId: p.holdId, status: p.status });
     if (settled.outcome === 'CONFIRMED') return res.redirect(303, `/ticket/${settled.pnr}`);
-    res.render('payment-return', { payment: p, outcome: settled.outcome, message: null });
+    res.render('payment-return', { payment: p, outcome: settled.outcome, message: null, refundRef: settled.refundRef });
   } catch (err) {
     if (err.status === 404) return res.status(404).render('not-found');
     if (err.status === 403) return res.status(403).render('payment-return', { payment: null, outcome: 'ERROR', message: err.message });

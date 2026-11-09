@@ -4,6 +4,7 @@ const service = require('./service');
 const gateway = require('./gateway');
 const { settlePayment } = require('../booking/settle');
 const checkout = require('../booking/checkout');
+const refunds = require('./refunds');
 
 const router = express.Router();
 
@@ -28,7 +29,7 @@ router.post('/callback', async (req, res, next) => {
 
 router.get('/:txRef', async (req, res, next) => {
   try {
-    res.json(await service.getPayment(req.params.txRef));
+    res.json({ ...(await service.getPayment(req.params.txRef)), refunds: await refunds.refundsFor(req.params.txRef) });
   } catch (err) { next(err); }
 });
 
