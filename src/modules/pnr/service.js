@@ -1,6 +1,7 @@
 'use strict';
 const { pool } = require('../../db/pool');
 const { badRequest, notFound } = require('../../errors');
+const { maskIfCancelled } = require('../booking/passengerStatus');
 
 // "Meera Rao" becomes "M. R." Only initials leave the system (RRS-SR-004).
 function initials(name) {
@@ -33,7 +34,7 @@ async function publicStatus(pnr) {
     classCode: bk.class_code,
     from: bk.from_station,
     to: bk.to_station,
-    passengers: pax.rows.map((p) => ({
+    passengers: pax.rows.map((p) => maskIfCancelled(bk.status, {
       passenger: p.seq,
       initials: initials(p.name),
       status: p.status === 'CNF' ? 'CNF' : `${p.status} ${p.position}`,

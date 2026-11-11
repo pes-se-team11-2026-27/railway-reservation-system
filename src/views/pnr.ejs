@@ -23,7 +23,7 @@
           <thead><tr><th scope="col">Passenger</th><th scope="col">Status</th><th scope="col" class="num">Coach and berth</th></tr></thead>
           <tbody>
             <% result.passengers.forEach(function (p) { %>
-              <tr><th scope="row"><%= p.passenger %>. <%= p.initials %></th><td><%= p.status %></td><td class="num"><%= p.berth || 'Given at chart time' %></td></tr>
+              <tr><th scope="row"><%= p.passenger %>. <%= p.initials %></th><td><%= p.status === 'CANCELLED' ? 'Cancelled' : p.status %></td><td class="num"><%= p.status === 'CANCELLED' ? 'No berth' : (p.berth || 'Given at chart time') %></td></tr>
             <% }) %>
           </tbody>
         </table>

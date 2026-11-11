@@ -13,7 +13,7 @@
               <td translate="no"><%= b.pnr %><%= b.status === 'CANCELLED' ? ' (cancelled)' : '' %></td>
               <th scope="row"><%= p.name %></th>
               <td><%= p.age %></td>
-              <td><%= p.status === 'NOT_ON_CHART' ? 'Not on chart, refunded' : (p.status === 'CNF' ? 'Confirmed' : p.status + ' ' + p.position) %></td>
+              <td><%= p.status === 'NOT_ON_CHART' ? 'Not on chart, refunded' : (p.status === 'CANCELLED' ? 'Cancelled' : (p.status === 'CNF' ? 'Confirmed' : p.status + ' ' + p.position)) %></td>
               <td><%= p.berth || '' %></td>
             </tr>
           <% }) }) %>

@@ -40,8 +40,8 @@
             <% booking.passengers.forEach(function (p) { %>
               <tr>
                 <th scope="row"><strong><%= p.name %></strong> <span class="hint"><%= p.age %></span></th>
-                <td><span class="chip chip--<%= p.status.toLowerCase() %>"><%= p.status === 'CNF' ? 'CNF' : p.status + ' ' + p.position %></span></td>
-                <td class="num"><%= p.coach ? p.coach + ' / ' + p.berth : 'Given at chart time' %></td>
+                <td><span class="chip chip--<%= p.status.toLowerCase() %>"><%= p.status === 'CANCELLED' ? 'Cancelled' : (p.status === 'CNF' ? 'CNF' : p.status + ' ' + p.position) %></span></td>
+                <td class="num"><%= p.status === 'CANCELLED' ? 'No berth' : (p.coach ? p.coach + ' / ' + p.berth : 'Given at chart time') %></td>
               </tr>
             <% }) %>
           </tbody>

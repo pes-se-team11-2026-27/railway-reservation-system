@@ -4,6 +4,7 @@ const { getSetting } = require('../../settings');
 const { conflict, notFound } = require('../../errors');
 const { lockQueue } = require('../allocation/queue');
 const { promote } = require('../cancellation/service');
+const { maskIfCancelled } = require('../booking/passengerStatus');
 const { splitFare } = require('../cancellation/rules');
 const refunds = require('../payment/refunds');
 const notification = require('../notification/service');
@@ -158,11 +159,14 @@ async function getChart(runId) {
     if (!bookings.has(r.pnr)) {
       bookings.set(r.pnr, { pnr: r.pnr, status: r.booking_status, classCode: r.class_code, from: r.from_station, to: r.to_station, passengers: [] });
     }
-    bookings.get(r.pnr).passengers.push({
+    const passenger = {
       seq: r.seq, name: r.name, age: r.age, gender: r.gender,
       status: r.refunded ? 'NOT_ON_CHART' : r.status, position: r.position,
       berth: r.coach_no ? `${r.coach_no}/${r.berth_no}` : null,
-    });
+    };
+    // Dropped from the chart keeps its own label; any other passenger of a
+    // cancelled booking shows as cancelled with no berth (bug #67).
+    bookings.get(r.pnr).passengers.push(r.refunded ? passenger : maskIfCancelled(r.booking_status, passenger));
   }
   const R = run.rows[0];
   return {
