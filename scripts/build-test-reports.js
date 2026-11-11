@@ -15,7 +15,13 @@ const { execSync } = require('child_process');
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'docs', 'reports');
 const read = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8'));
-const rel = (p) => path.relative(ROOT, p).split(path.sep).join('/');
+// Paths inside the repository (src/... or tests/...), whichever machine wrote
+// the results: CI writes /home/runner/work/..., a laptop its own folder.
+const rel = (p) => {
+  const unix = String(p).split('\\').join('/');
+  const m = /(?:^|\/)((?:src|tests)\/.*)$/.exec(unix);
+  return m ? m[1] : path.relative(ROOT, p).split(path.sep).join('/');
+};
 const pct = (n) => `${Number(n).toFixed(2)}%`;
 const sec = (ms) => `${(ms / 1000).toFixed(1)} s`;
 
