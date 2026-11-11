@@ -18,6 +18,7 @@ An online and counter based system for searching trains, reserving berths (with 
 |---|---|
 | Project board (backlog, story points, sprints) | [Railway Reservation System Board](https://github.com/orgs/pes-se-team11-2026-27/projects/1) |
 | Documents | [docs](docs): SRS, SAD, Test Plan, deviation log |
+| Test reports | [docs/reports](docs/reports): unit test, system validation, code coverage, branch coverage |
 | Sprint videos | [Sprint 1](docs/videos/sprint1-demo.mp4), [Sprint 2](docs/videos/sprint2-demo.mp4) (open with View raw or download) |
 | Sprint 2 freeze | tag [`sprint2-freeze`](https://github.com/pes-se-team11-2026-27/railway-reservation-system/tree/sprint2-freeze) |
 
@@ -62,16 +63,17 @@ npm run dev
 | Command | What it runs |
 |---|---|
 | `npm run lint` | ESLint over the whole project |
-| `npm run test:unit` | Unit tests in `tests/unit` (94), no database needed |
-| `npm run test:integration` | Integration tests in `tests/integration` (179), need PostgreSQL at `DATABASE_URL` |
+| `npm run test:unit` | Unit tests in `tests/unit` (103), no database needed |
+| `npm run test:integration` | Integration tests in `tests/integration` (192), need PostgreSQL at `DATABASE_URL` |
 | `npm run test:coverage` | Everything, with line and branch coverage in `coverage/` |
 | `npm run scan:card-data` | Scans every table and a pg_dump backup for card data; fails if any is found |
+| `npm run reconcile` | Checks that the inventory and issued tickets agree; fails on any mismatch |
 
 Integration tests wipe and rebuild the database they point at, so give them a separate database such as `rrs_test`.
 
 ## CI/CD and how we work
 
-GitHub Actions runs on every push and pull request: install, lint, unit tests, integration tests against a PostgreSQL service container with coverage, a card data scan of the database and a backup, then a Docker image build. See `.github/workflows/ci.yml`.
+GitHub Actions runs on every push and pull request: install, lint, unit tests, integration tests against a PostgreSQL service container with coverage, a card data scan of the database and a backup, an inventory reconciliation, then a Docker image build. See `.github/workflows/ci.yml`.
 
 `main` is protected. Every change arrives as a pull request opened by the member assigned to the issue, needs green CI and an approving review, and is merged by the repository owner.
 
@@ -97,7 +99,8 @@ diagrams/       use case, component and sequence diagrams
 |---|---|---|
 | Software Requirements Specification (SRS) | 1.0 | [docs/SRS](docs/SRS) |
 | Software Architecture and Design Specification (SAD) | 1.2 | [docs/SAD](docs/SAD) |
-| Software Test Plan (STP), with test case results | 1.2 | [docs/STP](docs/STP) |
+| Software Test Plan (STP), with test case results | 1.3 | [docs/STP](docs/STP) |
+| Test reports (unit, system validation, code coverage, branch coverage) | Sprint 3 | [docs/reports](docs/reports) |
 | Deviations from the documents, with reasons | Sprint 1 and 2 | [docs/DEVIATIONS.md](docs/DEVIATIONS.md) |
 
 ## Technology stack
@@ -140,4 +143,13 @@ Node.js 20, Express, PostgreSQL 15 through the pg driver (plain SQL), EJS templa
 
 ## Sprint 3 (testing)
 
-Load tests for booking and search, inventory reconciliation, an availability report, an accessibility and slow connection run, and the unit, system validation, code coverage and branch coverage reports in `docs`. Tracked as the **Sprint 3** milestone.
+| Item | Requirement | How to run |
+|---|---|---|
+| Booking load test, 50 a second | RRS-NF-001 | `k6 run load/booking.js` |
+| Search load test, 1000 users | RRS-NF-002 | `k6 run load/search.js` |
+| Tatkal burst, then reconciliation | RRS-NF-003 | `k6 run load/tatkal-burst.js`, then `npm run reconcile` |
+| Monthly availability report | RRS-NF-004 | `/admin/availability`, or `node scripts/availability-report.js` |
+| Accessibility audit and 1 Mbps booking | RRS-NF-006 | `node scripts/a11y-audit.js` |
+| The four test reports | Part 3 | `npm run test:report`, then `npm run reports:build` |
+
+Results are in [docs/reports](docs/reports).

@@ -1,0 +1,276 @@
+{
+  "about": "Each Test Plan case (STP Section 13.1), the requirement it verifies, and the evidence that decides PASS or FAIL. jest: the named test files must pass. report: the named file in docs/reports must say Result: PASS.",
+  "cases": [
+    {
+      "id": "TC-REG-01",
+      "requirement": "RRS-F-001",
+      "title": "One account per mobile number",
+      "jest": [
+        "tests/integration/accounts.test.js",
+        "tests/unit/accountValidation.test.js"
+      ]
+    },
+    {
+      "id": "TC-REG-02",
+      "requirement": "RRS-F-002",
+      "title": "OTP verification before payment",
+      "jest": [
+        "tests/integration/accounts.test.js",
+        "tests/integration/payments.test.js"
+      ]
+    },
+    {
+      "id": "TC-SRCH-01",
+      "requirement": "RRS-F-003",
+      "title": "Train search by stations and date",
+      "jest": [
+        "tests/integration/search.test.js",
+        "tests/unit/searchInput.test.js"
+      ]
+    },
+    {
+      "id": "TC-SRCH-02",
+      "requirement": "RRS-F-004",
+      "title": "Live availability per class and quota",
+      "jest": [
+        "tests/integration/availability.test.js"
+      ]
+    },
+    {
+      "id": "TC-BOOK-01",
+      "requirement": "RRS-F-005",
+      "title": "No berth allocated twice under 200 parallel requests",
+      "jest": [
+        "tests/integration/holds.test.js"
+      ]
+    },
+    {
+      "id": "TC-BOOK-02",
+      "requirement": "RRS-F-006",
+      "title": "Holds expire after 10 minutes and berths return",
+      "jest": [
+        "tests/integration/holds.test.js"
+      ]
+    },
+    {
+      "id": "TC-BOOK-03",
+      "requirement": "RRS-F-007",
+      "title": "Quota, then RAC, then waitlist, in request order",
+      "jest": [
+        "tests/integration/allocation.test.js",
+        "tests/unit/allocate.test.js"
+      ]
+    },
+    {
+      "id": "TC-BOOK-04",
+      "requirement": "RRS-F-008",
+      "title": "Passenger limits per booking",
+      "jest": [
+        "tests/integration/tatkal.test.js",
+        "tests/unit/holdValidation.test.js"
+      ]
+    },
+    {
+      "id": "TC-BOOK-05",
+      "requirement": "RRS-F-009",
+      "title": "Tatkal opening window",
+      "jest": [
+        "tests/integration/tatkal.test.js",
+        "tests/unit/tatkal.test.js"
+      ]
+    },
+    {
+      "id": "TC-PAY-01",
+      "requirement": "RRS-F-010",
+      "title": "Itemised fare breakup",
+      "jest": [
+        "tests/integration/fares.test.js",
+        "tests/unit/fareCalc.test.js"
+      ]
+    },
+    {
+      "id": "TC-PAY-02",
+      "requirement": "RRS-F-011",
+      "title": "Hosted payment, only a token stored",
+      "jest": [
+        "tests/integration/payments.test.js",
+        "tests/unit/gateway.test.js"
+      ]
+    },
+    {
+      "id": "TC-PAY-03",
+      "requirement": "RRS-F-012",
+      "title": "PNR, QR ticket and messages only after payment",
+      "jest": [
+        "tests/integration/bookings.test.js",
+        "tests/unit/pnr.test.js"
+      ]
+    },
+    {
+      "id": "TC-PAY-04",
+      "requirement": "RRS-F-013",
+      "title": "Repeated payment callbacks count once",
+      "jest": [
+        "tests/integration/bookings.test.js"
+      ]
+    },
+    {
+      "id": "TC-PAY-05",
+      "requirement": "RRS-F-014",
+      "title": "Automatic refund when the berths are gone",
+      "jest": [
+        "tests/integration/refunds.test.js"
+      ]
+    },
+    {
+      "id": "TC-CAN-01",
+      "requirement": "RRS-F-015",
+      "title": "Cancellation refund slabs and cutoff",
+      "jest": [
+        "tests/integration/cancellation.test.js",
+        "tests/unit/cancelRules.test.js"
+      ]
+    },
+    {
+      "id": "TC-CAN-02",
+      "requirement": "RRS-F-016",
+      "title": "RAC and waitlist promotion on cancellation",
+      "jest": [
+        "tests/integration/cancellation.test.js"
+      ]
+    },
+    {
+      "id": "TC-CAN-03",
+      "requirement": "RRS-F-015",
+      "title": "A cancelled booking shows Cancelled with no berth on the chart, PNR status and ticket (regression for #67)",
+      "jest": [
+        "tests/integration/cancelledViews.test.js",
+        "tests/unit/passengerStatus.test.js"
+      ]
+    },
+    {
+      "id": "TC-CHT-01",
+      "requirement": "RRS-F-017",
+      "title": "Chart preparation before departure",
+      "jest": [
+        "tests/integration/chart.test.js"
+      ]
+    },
+    {
+      "id": "TC-CHT-02",
+      "requirement": "RRS-F-018",
+      "title": "Handheld ticket check with no network",
+      "jest": [
+        "tests/integration/tte.test.js",
+        "tests/unit/tteVerify.test.js"
+      ],
+      "report": "manual-checks.md"
+    },
+    {
+      "id": "TC-ADM-01",
+      "requirement": "RRS-F-019",
+      "title": "Fare and quota rules with effective dates",
+      "jest": [
+        "tests/integration/admin.test.js"
+      ]
+    },
+    {
+      "id": "TC-ADM-02",
+      "requirement": "RRS-F-020",
+      "title": "Append only audit log of privileged actions",
+      "jest": [
+        "tests/integration/audit.test.js"
+      ]
+    },
+    {
+      "id": "TC-PERF-01",
+      "requirement": "RRS-NF-001",
+      "title": "50 booking attempts a second, 95th percentile under 3 seconds",
+      "report": "load-booking.md"
+    },
+    {
+      "id": "TC-PERF-02",
+      "requirement": "RRS-NF-002",
+      "title": "1000 users searching, 95th percentile under 2 seconds",
+      "report": "load-search.md"
+    },
+    {
+      "id": "TC-REL-01",
+      "requirement": "RRS-NF-003",
+      "title": "Zero mismatches after a Tatkal burst",
+      "jest": [
+        "tests/integration/reconcile.test.js"
+      ],
+      "report": "reconciliation.md"
+    },
+    {
+      "id": "TC-REL-02",
+      "requirement": "RRS-NF-004",
+      "title": "Monthly availability report against 99.5 percent",
+      "jest": [
+        "tests/integration/availability-report.test.js",
+        "tests/unit/availability.test.js"
+      ]
+    },
+    {
+      "id": "TC-SEC-01",
+      "requirement": "RRS-NF-005",
+      "title": "No card data stored, logged or backed up",
+      "jest": [
+        "tests/integration/cardData.test.js",
+        "tests/unit/cardScan.test.js"
+      ]
+    },
+    {
+      "id": "TC-UX-01",
+      "requirement": "RRS-NF-006",
+      "title": "WCAG 2.2 AA pages and booking on 1 Mbps",
+      "report": "accessibility.md"
+    },
+    {
+      "id": "TC-SEC-02",
+      "requirement": "RRS-SR-001",
+      "title": "TLS 1.2 minimum, plain HTTP only redirects",
+      "jest": [
+        "tests/integration/tls.test.js",
+        "tests/unit/tls.test.js"
+      ]
+    },
+    {
+      "id": "TC-SEC-03",
+      "requirement": "RRS-SR-002",
+      "title": "No card data in stores, logs or backups",
+      "jest": [
+        "tests/integration/cardData.test.js"
+      ]
+    },
+    {
+      "id": "TC-SEC-04",
+      "requirement": "RRS-SR-003",
+      "title": "Staff roles, second factor and idle lock",
+      "jest": [
+        "tests/integration/staff.test.js",
+        "tests/unit/totp.test.js"
+      ]
+    },
+    {
+      "id": "TC-SEC-05",
+      "requirement": "RRS-SR-004",
+      "title": "PNR status with initials only and a lookup limit",
+      "jest": [
+        "tests/integration/pnrLookup.test.js",
+        "tests/unit/pnrLookup.test.js"
+      ]
+    },
+    {
+      "id": "TC-SEC-06",
+      "requirement": "RRS-SR-005",
+      "title": "Password hashing and sign in lockout",
+      "jest": [
+        "tests/integration/login.test.js",
+        "tests/unit/password.test.js",
+        "tests/unit/lockout.test.js"
+      ]
+    }
+  ]
+}
