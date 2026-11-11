@@ -47,8 +47,8 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      - name: Integration tests with coverage
-        run: npm run test:coverage
+      - name: Integration tests with coverage and results file
+        run: npm run test:report
 
       - name: Card data scan (RRS-NF-005, RRS-SR-002)
         run: npm run scan:card-data
@@ -64,10 +64,11 @@ jobs:
           path: reports/
 
       - name: Upload coverage report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: coverage/lcov.info
+          path: coverage/
 
   build:
     name: Docker build

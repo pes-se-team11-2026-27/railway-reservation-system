@@ -39,3 +39,16 @@ Each entry says what the document said, what was built, why, and what it affects
 The handheld being a PWA is **not** a deviation: the SRS names an Android 12 device, and SAD 3.6 chose a PWA (service worker, IndexedDB, html5-qrcode) that runs on it.
 
 Test totals at the end of Sprint 2: 94 unit and 179 integration tests, all run by CI on every push, plus a card data scan of the database and a backup.
+
+## Sprint 3
+
+| # | Document | What the document says | What was done | Why | Impact |
+|---|---|---|---|---|---|
+| D24 | Test Plan Section 13.1 | No test case for RRS-NF-004, none for defect #67 | TC-REL-02 added: the monthly availability report, including a gap and the 99.5 percent boundary. TC-CAN-03 added: the regression case for defect #67 | Every requirement needs a test case, and every fixed defect a regression test | 32 test cases; every SRS requirement is covered |
+| D25 | SRS RRS-NF-004 | 99.5 percent availability a month | The server records one sample a minute while it and the database answer; a missing minute counts as down. The report covers the time since monitoring began, not yet a full calendar month | A course project cannot run for a month before the demo | The method is the same for a full month; an external monitor would also catch a whole machine failing |
+| D26 | SRS RRS-NF-001, NF-002; Test Plan Section 5 | Load tests with k6 | k6 runs on the same laptop as the app in Docker, so both share the processor | No separate load machine | Real figures are conservative: a separate load machine would only improve them |
+| D27 | SRS RRS-NF-003 | A reconciliation job | The reconciliation is a set of read only checks run by CI after every push and by hand after the burst test (`npm run reconcile`), not a nightly scheduled job | CI runs it more often than nightly, against the data left by the whole test suite | Mismatches are caught on the push that causes them |
+| D28 | SRS RRS-NF-006; Test Plan TC-UX-01 | Pages pass WCAG 2.2 AA; booking on 1 Mbps within 30 seconds | axe-core through Playwright checks every page in light and dark mode; keyboard use is checked by hand; the 1 Mbps connection is emulated in Chromium, not a physical link | Automated checks catch most issues; keyboard order and focus need a person | Both parts are recorded in docs/reports |
+
+Defect found and fixed in Sprint 3: #67, cancelled bookings shown as confirmed on the chart, PNR status and ticket. Details in docs/reports/SYSTEM_VALIDATION_REPORT.md.
+

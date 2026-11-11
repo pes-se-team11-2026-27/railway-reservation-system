@@ -22,7 +22,9 @@
     "load:booking": "k6 run load/booking.js",
     "load:search": "k6 run load/search.js",
     "load:burst": "k6 run load/tatkal-burst.js",
-    "test:coverage": "jest --runInBand --coverage"
+    "test:coverage": "jest --runInBand --coverage",
+    "test:report": "node -e \"require('fs').mkdirSync('reports',{recursive:true})\" && jest --runInBand --coverage --json --outputFile=reports/jest-results.json",
+    "reports:build": "node scripts/build-test-reports.js"
   },
   "jest": {
     "projects": [
@@ -48,7 +50,8 @@
     ],
     "coverageReporters": [
       "text",
-      "lcov"
+      "lcov",
+      "json-summary"
     ]
   },
   "dependencies": {
