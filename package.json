@@ -4,7 +4,9 @@
   "description": "Railway Reservation System, SE mini project, Team 11, PES University",
   "private": true,
   "main": "src/server.js",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
@@ -24,11 +26,30 @@
   },
   "jest": {
     "projects": [
-      { "displayName": "unit", "testEnvironment": "node", "testMatch": ["<rootDir>/tests/unit/**/*.test.js"] },
-      { "displayName": "integration", "testEnvironment": "node", "testMatch": ["<rootDir>/tests/integration/**/*.test.js"], "globalSetup": "<rootDir>/tests/helpers/globalSetup.js" }
+      {
+        "displayName": "unit",
+        "testEnvironment": "node",
+        "testMatch": [
+          "<rootDir>/tests/unit/**/*.test.js"
+        ]
+      },
+      {
+        "displayName": "integration",
+        "testEnvironment": "node",
+        "testMatch": [
+          "<rootDir>/tests/integration/**/*.test.js"
+        ],
+        "globalSetup": "<rootDir>/tests/helpers/globalSetup.js"
+      }
     ],
-    "collectCoverageFrom": ["src/**/*.js", "!src/server.js"],
-    "coverageReporters": ["text", "lcov"]
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov"
+    ]
   },
   "dependencies": {
     "dotenv": "16.4.7",
@@ -39,10 +60,12 @@
     "qrcode": "1.5.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.1",
     "@eslint/js": "9.17.0",
     "eslint": "9.17.0",
     "globals": "15.14.0",
     "jest": "29.7.0",
+    "playwright": "1.56.0",
     "supertest": "7.0.0"
   }
 }
