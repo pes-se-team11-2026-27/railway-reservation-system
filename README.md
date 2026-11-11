@@ -16,6 +16,7 @@ An online and counter based system for searching trains, reserving berths (with 
 
 | | |
 |---|---|
+| Status | Sprints 1, 2 and 3 complete. 32 of 32 test cases pass; 295 automated tests; 90.99% line and 76.34% branch coverage |
 | Project board (backlog, story points, sprints) | [Railway Reservation System Board](https://github.com/orgs/pes-se-team11-2026-27/projects/1) |
 | Documents | [docs](docs): SRS, SAD, Test Plan, deviation log |
 | Test reports | [docs/reports](docs/reports): unit test, system validation, code coverage, branch coverage |
@@ -141,15 +142,16 @@ Node.js 20, Express, PostgreSQL 15 through the pg driver (plain SQL), EJS templa
 | Staff roles, second factor, idle lock | RRS-SR-003 | Staff sign in |
 | Public PNR status with initials only | RRS-SR-004 | `/pnr` |
 
-## Sprint 3 (testing)
+## Sprint 3 (testing, complete)
 
-| Item | Requirement | How to run |
-|---|---|---|
-| Booking load test, 50 a second | RRS-NF-001 | `k6 run load/booking.js` |
-| Search load test, 1000 users | RRS-NF-002 | `k6 run load/search.js` |
-| Tatkal burst, then reconciliation | RRS-NF-003 | `k6 run load/tatkal-burst.js`, then `npm run reconcile` |
-| Monthly availability report | RRS-NF-004 | `/admin/availability`, or `node scripts/availability-report.js` |
-| Accessibility audit and 1 Mbps booking | RRS-NF-006 | `node scripts/a11y-audit.js` |
-| The four test reports | Part 3 | `npm run test:report`, then `npm run reports:build` |
+| Item | Requirement | Result | How to run |
+|---|---|---|---|
+| Booking load test, 50 a second for a minute | RRS-NF-001 | PASS: 95th percentile 8 ms (target 3 s), no failures | `k6 run load/booking.js` |
+| Search load test, 1000 users | RRS-NF-002 | PASS: 95th percentile 46 ms (target 2 s), no failures | `k6 run load/search.js` |
+| Tatkal burst, then reconciliation | RRS-NF-003 | PASS: 200 users on one train, zero mismatches | `k6 run load/tatkal-burst.js`, then `npm run reconcile` |
+| Monthly availability report | RRS-NF-004 | PASS: 100% over the monitored period | `/admin/availability`, or `node scripts/availability-report.js` |
+| Accessibility audit and 1 Mbps booking | RRS-NF-006 | PASS: 25 pages in light and dark mode, 0 violations; booking in 8.7 s (target 30 s) | `node scripts/a11y-audit.js` |
+| Defect #67, cancelled bookings shown as confirmed | RRS-F-015 | Fixed, regression test TC-CAN-03 | |
+| The four test reports | Part 3 | Unit 103/103, system validation 32/32, coverage 90.99% lines and 76.34% branches | `npm run test:report`, then `npm run reports:build` |
 
-Results are in [docs/reports](docs/reports).
+All results and the four reports are in [docs/reports](docs/reports). The official reports are built from the CI run on Linux.
