@@ -53,12 +53,15 @@ jobs:
       - name: Card data scan (RRS-NF-005, RRS-SR-002)
         run: npm run scan:card-data
 
-      - name: Upload card data scan report
+      - name: Inventory reconciliation (RRS-NF-003)
+        run: npm run reconcile
+
+      - name: Upload scan and reconciliation reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: card-data-scan
-          path: reports/card-data-scan.txt
+          name: data-checks
+          path: reports/
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4

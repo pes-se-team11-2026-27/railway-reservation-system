@@ -16,6 +16,10 @@
     "test:unit": "jest --selectProjects unit",
     "test:integration": "jest --selectProjects integration --runInBand",
     "scan:card-data": "node scripts/scan-card-data.js --backup",
+    "reconcile": "node scripts/reconcile.js",
+    "load:booking": "k6 run load/booking.js",
+    "load:search": "k6 run load/search.js",
+    "load:burst": "k6 run load/tatkal-burst.js",
     "test:coverage": "jest --runInBand --coverage"
   },
   "jest": {
