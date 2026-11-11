@@ -7,6 +7,7 @@ const logger = require('../../logger');
 const notification = require('../notification/service');
 const refunds = require('../payment/refunds');
 const { releaseHold, getHold } = require('./service');
+const { maskIfCancelled } = require('./passengerStatus');
 
 // A PNR is 10 digits and never starts with 0.
 function generatePnr() {
@@ -124,7 +125,7 @@ async function getBooking(pnr) {
     quotaCode: hold.quotaCode,
     from: hold.from,
     to: hold.to,
-    passengers: hold.passengers,
+    passengers: hold.passengers.map((p) => maskIfCancelled(booking.status, p)),
     userId: hold.userId,
     messages: msgs.rows.map((m) => ({ channel: m.channel, to: m.channel === 'SMS' ? 'xxxxxx' + m.recipient.slice(-4) : m.recipient, sent: !!m.sent_at, reference: m.reference })),
     qrSvg,

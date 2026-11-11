@@ -373,6 +373,7 @@ a.chip { min-height: var(--control-h); }
 .chip--cnf { color: var(--cnf-ink); background: var(--cnf-bg); }
 .chip--rac { color: var(--rac-ink); background: var(--rac-bg); }
 .chip--wl  { color: var(--wl-ink);  background: var(--wl-bg); }
+.chip--cancelled { color: var(--ink-2); background: var(--line-soft); }
 a.chip:hover { text-decoration: underline; text-underline-offset: 0.2em; }
 
 /* ---------- search form ---------- */
