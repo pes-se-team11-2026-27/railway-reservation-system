@@ -8,6 +8,7 @@ const { releaseExpiredHolds } = require('./modules/booking/service');
 const { tlsOptions, redirectHandler, withHsts } = require('./tls');
 const { dispatchPending } = require('./modules/notification/service');
 const { prepareDueCharts } = require('./modules/chart/service');
+const { recordSample } = require('./modules/uptime/service');
 
 const app = createApp();
 
@@ -34,6 +35,11 @@ setInterval(() => {
     .then((done) => { if (done.length) logger.info({ runs: done.map((d) => d.runId) }, 'Charts prepared'); })
     .catch((err) => logger.error({ err }, 'Chart preparation failed'));
 }, 60000).unref();
+
+// One availability sample a minute, written only while the database answers (RRS-NF-004).
+const sampleUptime = () => recordSample().catch((err) => logger.error({ err }, 'Availability sample failed'));
+sampleUptime();
+setInterval(sampleUptime, 60000).unref();
 
 // Send anything waiting in the notification outbox every 30 seconds, so a
 // message that failed earlier is retried even if nothing else happens (ADR-03).

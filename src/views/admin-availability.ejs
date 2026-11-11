@@ -1,0 +1,38 @@
+<%
+  const when = (d) => new Date(d).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+  const hours = (m) => (m / 60).toFixed(1);
+%>
+<%- include('partials/top', { title: 'Availability', current: null }) %>
+  <div class="page-head">
+    <h1>Availability</h1>
+    <p>The server records one sample a minute while it and the database are healthy; a minute without a sample counts as down. Target: 99.5 percent a month. <a href="/admin">Back to the console</a></p>
+  </div>
+  <form class="panel narrow" method="get" action="/admin/availability">
+    <div class="field">
+      <label for="month">Month</label>
+      <input id="month" type="month" name="month" value="<%= month %>">
+    </div>
+    <div class="form-actions"><button class="button button--secondary" type="submit">Show</button></div>
+  </form>
+  <% if (locals.error) { %><%- include('partials/error', { error }) %><% } %>
+  <% if (report) { %>
+    <section class="panel" aria-labelledby="av-h" style="margin-top: 1.5rem">
+      <h2 id="av-h" class="section-head"><%= report.percent.toFixed(3) %>% available: <%= report.met ? 'target met' : 'below target' %></h2>
+      <p><%= when(report.from) %> to <%= when(report.to) %>: <%= report.upMinutes %> of <%= report.minutes %> minutes up (<%= hours(report.minutes) %> hours monitored).</p>
+      <% if (report.outages.length) { %>
+        <div class="table-wrap" style="margin-top: 1rem">
+          <table>
+            <thead><tr><th scope="col">Down from</th><th scope="col">Until</th><th scope="col" class="num">Minutes</th></tr></thead>
+            <tbody>
+              <% report.outages.forEach(function (o) { %>
+                <tr><td><%= when(o.from) %></td><td><%= when(o.to) %></td><td class="num"><%= o.minutes %></td></tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p>No outages in this period.</p>
+      <% } %>
+    </section>
+  <% } %>
+<%- include('partials/bottom') %>
