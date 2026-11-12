@@ -16,6 +16,9 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Every job runs on a pinned runner image. ubuntu-latest moved to Ubuntu 26 on
+# 19 October 2026, which Playwright 1.56 does not support yet; pinning keeps
+# the pipeline from changing under us when GitHub switches images.
 env:
   K6_VERSION: "0.54.0"
 
@@ -25,7 +28,7 @@ jobs:
   # suite leaves behind. (Job name is a required status check on main.)
   test:
     name: Lint and test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:15
@@ -44,8 +47,8 @@ jobs:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/rrs_test
       NODE_ENV: test
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -80,13 +83,13 @@ jobs:
 
       - name: Upload test results and data checks
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: data-checks
           path: reports/
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: coverage/
@@ -95,7 +98,7 @@ jobs:
   # browser: WCAG 2.2 AA in light and dark mode, and a booking on 1 Mbps.
   frontend:
     name: Frontend and accessibility
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:15
@@ -116,8 +119,8 @@ jobs:
       PORT: 3000
       BASE_URL: http://localhost:3000
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -139,7 +142,7 @@ jobs:
         run: node scripts/ci-summary.js frontend
       - name: Upload accessibility report and app log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: accessibility
           path: |
@@ -150,7 +153,7 @@ jobs:
   # reconciliation proves the burst left inventory and tickets in agreement.
   performance:
     name: Performance smoke
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:15
@@ -171,8 +174,8 @@ jobs:
       PORT: 3000
       BASE_URL: http://localhost:3000
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -204,7 +207,7 @@ jobs:
         run: node scripts/ci-summary.js performance
       - name: Upload load reports and app log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: performance
           path: |
@@ -215,10 +218,10 @@ jobs:
   # the app runs in production; development tools are reported only.
   security:
     name: Dependency audit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -234,9 +237,9 @@ jobs:
   # (Job name is a required status check on main.)
   build:
     name: Docker build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [test, frontend, performance, security]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build image
         run: docker build -t railway-reservation-system .
