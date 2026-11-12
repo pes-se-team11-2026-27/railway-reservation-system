@@ -49,7 +49,7 @@ export function handleSummary(data) {
     title: 'Tatkal burst',
     requirement: 'RRS-NF-003',
     testCase: 'TC-REL-01 (load part; then run the reconciliation)',
-    target: '200 simultaneous users on one train, no failed request',
+    target: `${__ENV.VUS || 200} simultaneous users on one train, no failed request`,
     metric: 'http_req_duration{name:hold}',
   });
   return outputs(data, 'load-tatkal-burst', md);

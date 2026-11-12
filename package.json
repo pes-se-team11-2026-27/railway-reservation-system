@@ -52,12 +52,20 @@
       "text",
       "lcov",
       "json-summary"
-    ]
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 85,
+        "statements": 85,
+        "functions": 85,
+        "branches": 70
+      }
+    }
   },
   "dependencies": {
     "dotenv": "16.4.7",
     "ejs": "3.1.10",
-    "express": "4.21.2",
+    "express": "4.22.3",
     "pg": "8.13.1",
     "pino": "9.6.0",
     "qrcode": "1.5.4"

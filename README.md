@@ -74,7 +74,15 @@ Integration tests wipe and rebuild the database they point at, so give them a se
 
 ## CI/CD and how we work
 
-GitHub Actions runs on every push and pull request: install, lint, unit tests, integration tests against a PostgreSQL service container with coverage, a card data scan of the database and a backup, an inventory reconciliation, then a Docker image build. See `.github/workflows/ci.yml`.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request, and by hand from the Actions tab. Each stage writes its results to the run's summary page.
+
+| Stage | What it checks |
+|---|---|
+| Lint and test | ESLint over the backend, the browser code, the service worker and the k6 scripts; unit tests; integration tests against PostgreSQL with coverage minimums (lines, statements and functions 85%, branches 70%); card data scan; inventory reconciliation |
+| Frontend and accessibility | Starts the app and checks 25 pages in light and dark mode against WCAG 2.2 AA, then books on an emulated 1 Mbps connection |
+| Performance smoke | Short k6 booking, search and Tatkal burst runs against the live app, then the reconciliation |
+| Dependency audit | Fails on a high or critical advisory in a production dependency |
+| Docker build | Builds the image once every stage above has passed |
 
 `main` is protected. Every change arrives as a pull request opened by the member assigned to the issue, needs green CI and an approving review, and is merged by the repository owner.
 
