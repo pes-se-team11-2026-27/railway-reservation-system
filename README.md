@@ -1,5 +1,7 @@
 # Railway Reservation System
 
+[![CI](https://github.com/pes-se-team11-2026-27/railway-reservation-system/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pes-se-team11-2026-27/railway-reservation-system/actions/workflows/ci.yml?query=branch%3Amain) [![Overall coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpes-se-team11-2026-27%2Frailway-reservation-system%2Fbadges%2Fcoverage.json)](docs/reports/CODE_COVERAGE_REPORT.md) [![Lint score](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpes-se-team11-2026-27%2Frailway-reservation-system%2Fbadges%2Flint.json)](https://github.com/pes-se-team11-2026-27/railway-reservation-system/actions/workflows/ci.yml?query=branch%3Amain) [![Branch coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpes-se-team11-2026-27%2Frailway-reservation-system%2Fbadges%2Fbranches.json)](docs/reports/BRANCH_COVERAGE_REPORT.md) [![Tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fpes-se-team11-2026-27%2Frailway-reservation-system%2Fbadges%2Ftests.json)](docs/reports/UNIT_TEST_REPORT.md)
+
 Software Engineering Laboratory Project, UE23CS341A, PES University
 Team 11, Class 5A CSE, academic year 2026-27
 
@@ -74,7 +76,12 @@ Integration tests wipe and rebuild the database they point at, so give them a se
 
 ## CI/CD and how we work
 
-GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request, and by hand from the Actions tab. Each stage writes its results to the run's summary page.
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push and pull request, and by hand from the Actions tab. Each stage writes its results to the run's summary page. Two headline scores are checked on every run and shown as **Lint** and **Coverage** lines in each commit's and PR's checks list, as annotations on the run, and in the badges at the top of this page (updated on every push to `main`):
+
+- **Lint score out of 10**, minimum **9.5**: 10 − (5 × errors + warnings) ÷ statements × 10, the Pylint formula, over every linted file.
+- **Overall coverage**, minimum **80%**: covered statements, branches and functions over their totals. Lines (85%), statements (85%), functions (85%) and branches (70%) also have their own minimums.
+
+The build fails if either score is below its minimum.
 
 | Stage | What it checks |
 |---|---|
