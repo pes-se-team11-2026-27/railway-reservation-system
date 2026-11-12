@@ -2,17 +2,23 @@
 
 Railway Reservation System, Team 11, UE23CS341A, PES University.
 
-Generated 2026-11-11T18:30:59.269Z from commit `1776d65` on Node.js v20.20.2. Code coverage is the share of the application code that the automated tests actually run.
+Generated 2026-11-12T10:57:17.387Z from commit `96f91d7` on Node.js v20.20.2. Code coverage is the share of the application code that the automated tests actually run.
 
-**Line coverage 90.99%, statement coverage 87.84%, function coverage 90.46%** over 59 source files in `src/` (all 295 unit and integration tests).
+## Overall coverage: 84.64% (minimum 80%): PASS
+
+2618 of 3093 statements, branches and functions in `src/` are run by the 295 unit and integration tests. Overall coverage = covered statements, branches and functions over their totals (lines are not added in, because they count the same code as statements).
+
+Breakdown: line coverage 90.99%, statement coverage 87.84%, function coverage 90.46%, branch coverage 76.34% (see the Branch Coverage Report).
 
 Tool: Jest built in coverage (Istanbul), `npm run test:report`. `src/server.js` (start up and timers) is excluded; its parts are tested through `src/app.js` and the modules.
 
-| Measure | Covered | Total | Coverage |
-|---|---|---|---|
-| Lines | 1424 | 1565 | 90.99% |
-| Statements | 1633 | 1859 | 87.84% |
-| Functions | 275 | 304 | 90.46% |
+| Measure | Covered | Total | Coverage | Minimum |
+|---|---|---|---|---|
+| **Overall** | 2618 | 3093 | **84.64%** | 80% |
+| Lines | 1424 | 1565 | 90.99% | 85% |
+| Statements | 1633 | 1859 | 87.84% | 85% |
+| Functions | 275 | 304 | 90.46% | 85% |
+| Branches | 710 | 930 | 76.34% | 70% |
 
 ## Line coverage by file
 
