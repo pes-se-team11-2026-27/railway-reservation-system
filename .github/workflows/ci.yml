@@ -5,12 +5,30 @@ on:
     branches: ["**"]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+# Read only by default; no job needs to write to the repository.
+permissions:
+  contents: read
+
+# A newer push to the same branch replaces a run still in progress.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Every job runs on a pinned runner image. ubuntu-latest moved to Ubuntu 26 on
+# 19 October 2026, which Playwright 1.56 does not support yet; pinning keeps
+# the pipeline from changing under us when GitHub switches images.
+env:
+  K6_VERSION: "0.54.0"
 
 jobs:
+  # Stage 1: backend. Lint everything, unit tests, integration tests against
+  # PostgreSQL with coverage minimums, then the data checks on the data the
+  # suite leaves behind. (Job name is a required status check on main.)
   test:
     name: Lint and test
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-24.04
     services:
       postgres:
         image: postgres:15
@@ -25,56 +43,203 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 10
-
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/rrs_test
       NODE_ENV: test
-
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
+      - name: Lint (backend, frontend, service worker, load tests)
         run: npm run lint
+      - name: Lint summary
+        if: always()
+        run: |
+          mkdir -p reports
+          npx eslint . --format json --output-file reports/eslint.json || true
+          node scripts/ci-summary.js lint
 
       - name: Unit tests
         run: npm run test:unit
 
-      - name: Integration tests with coverage and results file
+      - name: Unit and integration tests with coverage minimums
         run: npm run test:report
+      - name: Test and coverage summary
+        if: always()
+        run: node scripts/ci-summary.js tests
 
       - name: Card data scan (RRS-NF-005, RRS-SR-002)
         run: npm run scan:card-data
-
       - name: Inventory reconciliation (RRS-NF-003)
         run: npm run reconcile
-
-      - name: Upload scan and reconciliation reports
+      - name: Data checks summary
         if: always()
-        uses: actions/upload-artifact@v4
+        run: node scripts/ci-summary.js data
+
+      - name: Upload test results and data checks
+        if: always()
+        uses: actions/upload-artifact@v5
         with:
           name: data-checks
           path: reports/
-
-      - name: Upload coverage report
+      - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: coverage/
 
+  # Stage 2: frontend. Start the real app and check every page in a real
+  # browser: WCAG 2.2 AA in light and dark mode, and a booking on 1 Mbps.
+  frontend:
+    name: Frontend and accessibility
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rrs
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/rrs
+      NODE_ENV: development
+      PORT: 3000
+      BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies and the test browser
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Start the app with demo data
+        run: |
+          npm run migrate
+          npm run seed
+          nohup node src/server.js > app.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000/health > /dev/null && break; sleep 1; done
+          curl -sf http://localhost:3000/health
+      - name: Accessibility audit and 1 Mbps booking (RRS-NF-006)
+        run: node scripts/a11y-audit.js
+      - name: Frontend summary
+        if: always()
+        run: node scripts/ci-summary.js frontend
+      - name: Upload accessibility report and app log
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: accessibility
+          path: |
+            reports/
+            app.log
+
+  # Stage 3: performance smoke. Short k6 runs against the live app, then the
+  # reconciliation proves the burst left inventory and tickets in agreement.
+  performance:
+    name: Performance smoke
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: rrs
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/rrs
+      NODE_ENV: development
+      PORT: 3000
+      BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies and k6
+        run: |
+          npm ci
+          curl -sSL "https://github.com/grafana/k6/releases/download/v${K6_VERSION}/k6-v${K6_VERSION}-linux-amd64.tar.gz" | tar xz
+          sudo mv "k6-v${K6_VERSION}-linux-amd64/k6" /usr/local/bin/k6
+          k6 version
+      - name: Start the app with demo data
+        run: |
+          npm run migrate
+          npm run seed
+          nohup node src/server.js > app.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000/health > /dev/null && break; sleep 1; done
+          curl -sf http://localhost:3000/health
+      - name: Booking load (RRS-NF-001)
+        run: |
+          mkdir -p reports
+          RATE=20 DURATION=20s k6 run --quiet load/booking.js
+      - name: Search load (RRS-NF-002)
+        run: VUS=100 RAMP=10s HOLD=20s k6 run --quiet load/search.js
+      - name: Tatkal burst (RRS-NF-003)
+        run: k6 run --quiet load/tatkal-burst.js
+      - name: Reconciliation after the burst
+        run: npm run reconcile
+      - name: Performance summary
+        if: always()
+        run: node scripts/ci-summary.js performance
+      - name: Upload load reports and app log
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: performance
+          path: |
+            reports/
+            app.log
+
+  # Stage 4: dependencies. Fails on a high or critical advisory in anything
+  # the app runs in production; development tools are reported only.
+  security:
+    name: Dependency audit
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+      - name: Audit
+        run: |
+          mkdir -p reports
+          npm audit --json > reports/audit-all.json || true
+          npm audit --omit=dev --json > reports/audit-production.json || true
+          node scripts/ci-summary.js audit
+          npm audit --omit=dev --audit-level=high
+
+  # Stage 5: the deployable image, only after every check above has passed.
+  # (Job name is a required status check on main.)
   build:
     name: Docker build
-    runs-on: ubuntu-latest
-    needs: test
+    runs-on: ubuntu-24.04
+    needs: [test, frontend, performance, security]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Build image
         run: docker build -t railway-reservation-system .

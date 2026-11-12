@@ -490,7 +490,7 @@
 
   var RECENT_KEY = 'rrs:recent-routes';
   function readRecent() {
-    try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch (e) { return []; }
+    try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
   }
   function setUpRecent(slot) {
     var params = new URLSearchParams(location.search);
@@ -501,7 +501,7 @@
     if (params.get('from') && params.get('to') && document.getElementById('results-heading')) {
       var entry = { from: params.get('from'), to: params.get('to') };
       recent = [entry].concat(recent.filter(function (r) { return !(r.from === entry.from && r.to === entry.to); })).slice(0, 3);
-      try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent)); } catch (e) { /* private mode */ }
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(recent)); } catch { /* private mode */ }
     }
     var others = recent.filter(function (r) {
       return !(r.from === from.select.value && r.to === to.select.value) && from.item(r.from) && to.item(r.to);

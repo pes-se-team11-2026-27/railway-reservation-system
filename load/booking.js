@@ -59,7 +59,7 @@ export function handleSummary(data) {
     title: 'Booking load test',
     requirement: 'RRS-NF-001',
     testCase: 'TC-PERF-01',
-    target: '50 booking attempts a second for one minute, 95th percentile under 3 seconds, no failed request',
+    target: `${__ENV.RATE || 50} booking attempts a second for ${__ENV.DURATION || '1m'}, 95th percentile under 3 seconds, no failed request`,
     metric: 'http_req_duration{name:hold}',
   });
   return outputs(data, 'load-booking', md);
