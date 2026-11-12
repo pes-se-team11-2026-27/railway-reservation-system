@@ -29,6 +29,9 @@ jobs:
   test:
     name: Lint and test
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write   # to post the "Lint" and "Coverage" lines on the commit
     services:
       postgres:
         image: postgres:15
@@ -64,6 +67,22 @@ jobs:
           npx eslint . --format json --output-file reports/eslint.json || true
           node scripts/ci-summary.js lint
 
+      # Lint score out of 10 (Pylint formula), minimum 9.5: a "Lint" line in
+      # the checks list, an annotation, and the build fails below the minimum.
+      - name: Lint score (minimum 9.5)
+        if: always() && hashFiles('reports/eslint.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          line="$(node scripts/ci-summary.js lint-line)"
+          state="$(node scripts/ci-summary.js lint-state)"
+          echo "::notice title=Lint score::$line"
+          gh api "repos/${{ github.repository }}/statuses/$SHA" \
+            -f state="$state" -f context="Lint" -f description="$line" -f target_url="$RUN_URL" > /dev/null
+          [ "$state" = success ] || { echo "::error title=Lint score::$line"; exit 1; }
+
       - name: Unit tests
         run: npm run test:unit
 
@@ -72,6 +91,33 @@ jobs:
       - name: Test and coverage summary
         if: always()
         run: node scripts/ci-summary.js tests
+
+      # Overall coverage (minimum 80%) at a glance: a "Coverage" line in the
+      # checks list of every commit and PR, an annotation, and the build
+      # fails if the overall figure or any single minimum is not met.
+      - name: Overall coverage (minimum 80%)
+        if: always() && hashFiles('coverage/coverage-summary.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          line="$(node scripts/ci-summary.js coverage-line)"
+          state="$(node scripts/ci-summary.js coverage-state)"
+          echo "::notice title=Coverage::$line"
+          gh api "repos/${{ github.repository }}/statuses/$SHA" \
+            -f state="$state" -f context="Coverage" -f description="$line" -f target_url="$RUN_URL" > /dev/null
+          [ "$state" = success ] || { echo "::error title=Coverage::$line"; exit 1; }
+
+      - name: Badge data
+        if: always() && hashFiles('coverage/coverage-summary.json') != ''
+        run: node scripts/ci-summary.js badges badges
+      - name: Upload badge data
+        if: always() && hashFiles('badges/coverage.json') != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: badges
+          path: badges/
 
       - name: Card data scan (RRS-NF-005, RRS-SR-002)
         run: npm run scan:card-data
@@ -83,13 +129,13 @@ jobs:
 
       - name: Upload test results and data checks
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: data-checks
           path: reports/
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage
           path: coverage/
@@ -142,7 +188,7 @@ jobs:
         run: node scripts/ci-summary.js frontend
       - name: Upload accessibility report and app log
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: accessibility
           path: |
@@ -207,7 +253,7 @@ jobs:
         run: node scripts/ci-summary.js performance
       - name: Upload load reports and app log
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: performance
           path: |
@@ -243,3 +289,29 @@ jobs:
       - uses: actions/checkout@v5
       - name: Build image
         run: docker build -t railway-reservation-system .
+
+  # README badges: on pushes to main, the latest coverage and test counts go
+  # to the "badges" branch, which shields.io reads. main itself is untouched.
+  badges:
+    name: Publish badges
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.test.result != 'skipped'
+    needs: [test]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write   # only this job may push, and only to the badges branch
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: badges
+          path: badges
+      - name: Push badge data to the badges branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd badges
+          git init -q -b badges
+          git add ./*.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Badges for ${GITHUB_SHA::7}"
+          git push -q --force "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" badges
+

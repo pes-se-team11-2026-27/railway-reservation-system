@@ -11,6 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const scores = require('./lib/scores');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = path.join(ROOT, 'docs', 'reports');
@@ -145,20 +146,27 @@ function main() {
 
   // 3 and 4. Coverage
   const t = coverage.total;
+  const overall = scores.overallCoverage(t);
   const covFiles = Object.entries(coverage).filter(([k]) => k !== 'total')
     .map(([k, v]) => ({ file: rel(k), ...v })).sort((a, b) => a.file.localeCompare(b.file));
   const covRow = (f, key) => `| \`${f.file}\` | ${f[key].covered}/${f[key].total} | ${pct(f[key].pct)} |`;
   const codeMd = [
     ...header('Code Coverage Report', 'Code coverage is the share of the application code that the automated tests actually run.'),
-    `**Line coverage ${pct(t.lines.pct)}, statement coverage ${pct(t.statements.pct)}, function coverage ${pct(t.functions.pct)}** over ${covFiles.length} source files in \`src/\` (all ${count(files)} unit and integration tests).`,
+    `## Overall coverage: ${pct(overall.pct)} (minimum ${scores.OVERALL_MIN}%): ${overall.pct >= scores.OVERALL_MIN ? 'PASS' : 'FAIL'}`,
+    '',
+    `${overall.covered} of ${overall.total} statements, branches and functions in \`src/\` are run by the ${count(files)} unit and integration tests. Overall coverage = covered statements, branches and functions over their totals (lines are not added in, because they count the same code as statements).`,
+    '',
+    `Breakdown: line coverage ${pct(t.lines.pct)}, statement coverage ${pct(t.statements.pct)}, function coverage ${pct(t.functions.pct)}, branch coverage ${pct(t.branches.pct)} (see the Branch Coverage Report).`,
     '',
     'Tool: Jest built in coverage (Istanbul), `npm run test:report`. `src/server.js` (start up and timers) is excluded; its parts are tested through `src/app.js` and the modules.',
     '',
-    '| Measure | Covered | Total | Coverage |',
-    '|---|---|---|---|',
-    `| Lines | ${t.lines.covered} | ${t.lines.total} | ${pct(t.lines.pct)} |`,
-    `| Statements | ${t.statements.covered} | ${t.statements.total} | ${pct(t.statements.pct)} |`,
-    `| Functions | ${t.functions.covered} | ${t.functions.total} | ${pct(t.functions.pct)} |`,
+    '| Measure | Covered | Total | Coverage | Minimum |',
+    '|---|---|---|---|---|',
+    `| **Overall** | ${overall.covered} | ${overall.total} | **${pct(overall.pct)}** | ${scores.OVERALL_MIN}% |`,
+    `| Lines | ${t.lines.covered} | ${t.lines.total} | ${pct(t.lines.pct)} | ${scores.METRIC_MIN.lines}% |`,
+    `| Statements | ${t.statements.covered} | ${t.statements.total} | ${pct(t.statements.pct)} | ${scores.METRIC_MIN.statements}% |`,
+    `| Functions | ${t.functions.covered} | ${t.functions.total} | ${pct(t.functions.pct)} | ${scores.METRIC_MIN.functions}% |`,
+    `| Branches | ${t.branches.covered} | ${t.branches.total} | ${pct(t.branches.pct)} | ${scores.METRIC_MIN.branches}% |`,
     '',
     '## Line coverage by file',
     '',
@@ -191,6 +199,35 @@ function main() {
     '',
   ].join('\n');
 
+  // 5. Lint report (from the ESLint results of the same CI run)
+  let lint = null;
+  if (fs.existsSync(path.join(ROOT, 'reports/eslint.json'))) {
+    const results = read('reports/eslint.json');
+    lint = scores.lintScore(results);
+    const area = (f) => (/[\\/]public[\\/]/.test(f) ? 'Frontend (browser code)' : /[\\/]load[\\/]/.test(f) ? 'Load tests (k6)' : /[\\/]tests[\\/]/.test(f) ? 'Tests' : 'Backend');
+    const by = {};
+    for (const f of results) {
+      const a = area(f.filePath);
+      by[a] = by[a] || { files: 0, statements: 0, errors: 0, warnings: 0 };
+      by[a].files += 1; by[a].statements += scores.countStatements(f.filePath); by[a].errors += f.errorCount; by[a].warnings += f.warningCount;
+    }
+    const lintMd = [
+      ...header('Lint Report', 'Static analysis with ESLint (recommended rules) over the backend, the browser code, the service worker, the tests and the k6 load tests.'),
+      `## Lint score: ${lint.score.toFixed(2)} / 10 (minimum ${scores.LINT_MIN}): ${lint.met ? 'PASS' : 'FAIL'}`,
+      '',
+      `${lint.files} files, ${lint.statements} statements, ${lint.errors} errors, ${lint.warnings} warnings.`,
+      '',
+      'Score = 10 - (5 x errors + warnings) / statements x 10, never below 0 (the Pylint formula: an error weighs five times a warning, and the score scales with the size of the code). CI fails the build below 9.5 or on any error.',
+      '',
+      '| Area | Files | Statements | Errors | Warnings |',
+      '|---|---|---|---|---|',
+      ...Object.entries(by).map(([a, v]) => `| ${a} | ${v.files} | ${v.statements} | ${v.errors} | ${v.warnings} |`),
+      '',
+      ...(lint.errors + lint.warnings ? ['## Problems', '', ...results.filter((f) => f.messages.length).flatMap((f) => f.messages.map((m) => `- \`${rel(f.filePath)}:${m.line}\` ${m.severity === 2 ? 'error' : 'warning'} ${m.ruleId}: ${m.message}`)), ''] : ['No problems found.', '']),
+    ].join('\n');
+    fs.writeFileSync(path.join(OUT, 'LINT_REPORT.md'), lintMd);
+  }
+
   const indexMd = [
     '# Test reports',
     '',
@@ -200,8 +237,9 @@ function main() {
     '|---|---|',
     `| [Unit Test Report](UNIT_TEST_REPORT.md) | ${count(unit, 'passed')} of ${count(unit)} unit tests passed |`,
     `| [System Validation Report](SYSTEM_VALIDATION_REPORT.md) | ${pass} of ${rows.length} test cases passed |`,
-    `| [Code Coverage Report](CODE_COVERAGE_REPORT.md) | ${pct(t.lines.pct)} of lines |`,
+    `| [Code Coverage Report](CODE_COVERAGE_REPORT.md) | Overall coverage ${pct(overall.pct)} (lines ${pct(t.lines.pct)}) |`,
     `| [Branch Coverage Report](BRANCH_COVERAGE_REPORT.md) | ${pct(t.branches.pct)} of branches |`,
+    ...(lint ? [`| [Lint Report](LINT_REPORT.md) | Lint score ${lint.score.toFixed(2)} / 10 |`] : []),
     '',
     'Evidence used by the System Validation Report:',
     '',
@@ -215,7 +253,7 @@ function main() {
   fs.writeFileSync(path.join(OUT, 'CODE_COVERAGE_REPORT.md'), codeMd);
   fs.writeFileSync(path.join(OUT, 'BRANCH_COVERAGE_REPORT.md'), branchMd);
   fs.writeFileSync(path.join(OUT, 'README.md'), indexMd);
-  console.log(`Unit ${count(unit, 'passed')}/${count(unit)}; integration ${count(integ, 'passed')}/${count(integ)}; test cases ${pass}/${rows.length}; lines ${pct(t.lines.pct)}; branches ${pct(t.branches.pct)}`);
+  console.log(`Unit ${count(unit, 'passed')}/${count(unit)}; integration ${count(integ, 'passed')}/${count(integ)}; test cases ${pass}/${rows.length}; overall coverage ${pct(overall.pct)}; lines ${pct(t.lines.pct)}; branches ${pct(t.branches.pct)}${lint ? `; lint score ${lint.score.toFixed(2)}/10` : ''}`);
   for (const r of rows.filter((x) => x.result !== 'PASS')) console.log(`  ${r.result}: ${r.id} ${r.evidence.join('; ')}`);
 }
 

@@ -2,7 +2,7 @@
 
 Railway Reservation System, Team 11, UE23CS341A, PES University.
 
-Generated 2026-11-11T18:30:59.276Z from commit `1776d65` on Node.js v20.20.2. Branch coverage is the share of decision outcomes (each side of every if, else, switch case, ternary and logical operator) that the tests take.
+Generated 2026-11-12T10:57:17.397Z from commit `96f91d7` on Node.js v20.20.2. Branch coverage is the share of decision outcomes (each side of every if, else, switch case, ternary and logical operator) that the tests take.
 
 **Branch coverage 76.34%**: 710 of 930 branches taken by the tests.
 
